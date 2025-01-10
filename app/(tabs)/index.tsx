@@ -1,74 +1,99 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useContext, useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import { useRouter } from "expo-router";
+import Animated, { SlideInLeft } from "react-native-reanimated";
+import CustomButton from "@/components/CustomButton";
+import { colors } from "@/styles/colors";
+import { AppContext } from "@/context";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 
-export default function HomeScreen() {
+const HomeScreen = () => {
+  const router = useRouter();
+  const { games } = useContext(AppContext);
+
+
+
+  const handleNewGame = () => {
+    router.push("/game/create");
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      {/* Botón de Nueva Partida */}
+      <CustomButton title="Nueva partida" onPress={handleNewGame} bgColor={colors.green[500]} />
+
+      {/* Historial de partidas */}
+      <Text style={styles.historyTitle}>Historial de partidas</Text>
+      <ScrollView contentContainerStyle={styles.historyContainer}>
+        {games.map((game, index) => (
+          <Animated.View
+            key={game.id}
+            entering={SlideInLeft
+              .duration(500)
+              .delay(index * 200)} // Agregamos delay progresivo
+            style={styles.gameCard}
+          >
+            <TouchableOpacity
+              style={styles.touchableCard}
+              onPress={() => router.push(`/game/${game.id}`)}
+            >
+              <Text style={styles.gameDate}>{game.date}</Text>
+              <Text style={styles.gameScore}>{game.scoreLimit} pts</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        ))}
+      </ScrollView>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: "#FFFFFF",
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  newGameButton: {
+    backgroundColor: "#4CAF50",
+    padding: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    marginBottom: 20,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  newGameButtonText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+  },
+  historyTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333333",
+    marginBottom: 10,
+  },
+  historyContainer: {
+    paddingBottom: 20,
+  },
+  gameCard: {
+    backgroundColor: "#F0F0F0",
+    marginBottom: 10,
+    borderRadius: 10,
+  },
+  touchableCard: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 15,
+  },
+  gameDate: {
+    fontSize: 16,
+    color: "#333333",
+  },
+  gameScore: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333333",
   },
 });
+
+export default HomeScreen;

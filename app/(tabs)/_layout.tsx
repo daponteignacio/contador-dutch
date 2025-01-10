@@ -1,12 +1,17 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform } from 'react-native';
+import { Platform } from "react-native";
+import { Tabs } from "expo-router";
 
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { HapticTab } from "@/components/HapticTab";
+import TabBarBackground from "@/components/ui/TabBarBackground";
+import { Colors } from "@/constants/Colors";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { colors } from "@/styles/colors";
+
+// TODO: Cuando hay una partida en curso agregar un icono animado a la tab de Partida que desaparece solo si estoy en la pantalla de la partida.
+// TODO: Habilitar respuesta háptica en las tabs.
+// TODO: Sacar highlite cuando aprieto una tab.
+
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -14,30 +19,61 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        // tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+        tabBarActiveTintColor: colors.blue[700],
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
-      }}>
+        tabBarStyle: {
+
+          height: 70, // Altura de la tab bar
+          backgroundColor: Colors[colorScheme ?? "light"].background, // Fondo dinámico
+          // borderRadius: 20, // Bordes redondeados
+          // marginHorizontal: 16, // Separación horizontal para el efecto flotante
+          // marginBottom: 20, // Separación del borde inferior
+          // position: "absolute", // Posicionar flotante
+          // borderTopWidth: 0, // Eliminar borde superior
+          // elevation: 10, // Sombra en Android
+          // shadowColor: "#000", // Sombra en iOS
+          // shadowOpacity: 0.2,
+          // shadowOffset: { width: 0, height: 4 },
+          // shadowRadius: 6,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12, // Ajustar tamaño del texto
+          marginBottom: 10, // Separar texto del borde inferior
+        },
+        tabBarIconStyle: {
+          marginTop: 5, // Espacio adicional entre icono y texto
+        },
+        animation: 'fade'
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: "Nuevo juego",
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="cards-outline" size={28} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="partida"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: "Partida",
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="cards" size={28} color={color} />
+          ), // Icono de naipes
+        }}
+      />
+      <Tabs.Screen
+        name="rules"
+        options={{
+          title: "Reglas",
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="format-list-bulleted" size={28} color={color} />
+          ), // Icono de listado
         }}
       />
     </Tabs>
