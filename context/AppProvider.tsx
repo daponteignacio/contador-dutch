@@ -1,8 +1,11 @@
-import { FC, useReducer } from 'react';
-import { AppContext, appReducer } from './index';
-import { Game, Player } from '@/interfaces/game';
+import { FC, useEffect, useReducer } from 'react';
+import { AppContext, appReducer } from './';
+import { FinishMode, Game, Player } from '@/interfaces/game';
+import { Storage } from '@/utils/AsyncStorage';
+import 'react-native-get-random-values';
+import { v4 as uuidv4 } from 'uuid';
 
-
+// TODO: terminar la partida automaticamente cuando se llegue al limite de puntos definido y mostrar un mensaje de felicitaciones al ganador (agregar animacion de confeti).
 
 
 export interface AppState {
@@ -13,114 +16,7 @@ export interface AppState {
 }
 
 const App_INITIAL_STATE: AppState = {
-    games: [
-        {
-            id: 1,
-            name: "abc123",
-            date: "15/01/2024",
-            scoreLimit: 200,
-            players: [
-                { id: 1, name: "Juan", score: 90 },
-                { id: 2, name: "Pedro", score: 198 },
-                { id: 3, name: "Ana", score: 205 },
-                { id: 4, name: "Luis", score: 100 },
-            ],
-        },
-        {
-            id: 2,
-            name: "abc123",
-            date: "10/01/2024",
-            scoreLimit: 150,
-            players: [
-                { id: 1, name: "Carlos", score: 100 },
-                { id: 2, name: "María", score: 149 },
-                { id: 3, name: "Sofía", score: 151 },
-                { id: 4, name: "Andrés", score: 70 },
-            ],
-        },
-        {
-            id: 3,
-            name: "abc123",
-            date: "05/01/2024",
-            scoreLimit: 180,
-            players: [
-                { id: 1, name: "Laura", score: 50 },
-                { id: 2, name: "Roberto", score: 179 },
-                { id: 3, name: "Pablo", score: 183 },
-                { id: 4, name: "Elena", score: 90 },
-            ],
-        },
-        {
-            id: 4,
-            name: "game4",
-            date: "01/01/2024",
-            scoreLimit: 100,
-            players: [],
-        },
-        {
-            id: 5,
-            name: "game5",
-            date: "02/01/2024",
-            scoreLimit: 120,
-            players: [],
-        },
-        {
-            id: 6,
-            name: "game6",
-            date: "03/01/2024",
-            scoreLimit: 140,
-            players: [],
-        },
-        {
-            id: 7,
-            name: "game7",
-            date: "04/01/2024",
-            scoreLimit: 160,
-            players: [],
-        },
-        {
-            id: 8,
-            name: "game8",
-            date: "05/01/2024",
-            scoreLimit: 180,
-            players: [],
-        },
-        {
-            id: 9,
-            name: "game9",
-            date: "06/01/2024",
-            scoreLimit: 200,
-            players: [],
-        },
-        {
-            id: 10,
-            name: "game10",
-            date: "07/01/2024",
-            scoreLimit: 220,
-            players: [],
-        },
-        {
-            id: 11,
-            name: "game11",
-            date: "08/01/2024",
-            scoreLimit: 240,
-            players: [],
-        },
-        {
-            id: 12,
-            name: "game12",
-            date: "09/01/2024",
-            scoreLimit: 260,
-            players: [],
-        },
-        {
-            id: 13,
-            name: "game13",
-            date: "10/01/2024",
-            scoreLimit: 280,
-            players: [],
-        }
-    ],
+    games: [],
     loading: true
 }
 
@@ -137,15 +33,41 @@ export const AppProvider: FC<AppProviderProps> = ({ children }) => {
         dispatch({ type: "UPDATE_CURRENT_GAME", payload: game });
     }
 
-    const newGame = (name: string, limit: number, players: Player[]) => {
-        dispatch({ type: "NEW_GAME", payload: { name, limit, players } });
+    const newGame = (name: string, limit: number, players: Player[], finishMode: FinishMode) => {
+        const id = uuidv4();
+        dispatch({ type: "NEW_GAME", payload: { name, limit, players, id, finishMode } });
     }
 
-    const selectOldGame = (id: number) => {
+    const endGame = () => {
+        dispatch({ type: "END_GAME" });
+    }
+
+    const removePlayer = (playerId: number) => {
+        dispatch({ type: "REMOVE_PLAYER", payload: playerId });
+    }
+
+
+    const selectOldGame = (id: string) => {
         const game = state.games.find(g => g.id === id);
         if (!game) return;
         dispatch({ type: "SELECT_OLD_GAME", payload: game });
     }
+
+    useEffect(() => {
+        if (!state.games.length) return;
+        Storage.setItem("games", state.games);
+    }, [state.games]);
+
+    useEffect(() => {
+        Storage.getItem("games").then((games) => {
+            const parsedGames = games as Game[];
+            console.log({ parsedGames })
+
+            if (parsedGames.length) {
+                dispatch({ type: "SET_GAMES", payload: parsedGames });
+            }
+        });
+    }, []);
 
     return (
         <AppContext.Provider value={{
@@ -153,7 +75,9 @@ export const AppProvider: FC<AppProviderProps> = ({ children }) => {
 
             newGame,
             updateCurrentGame,
-            selectOldGame
+            selectOldGame,
+            endGame,
+            removePlayer,
         }}>
             {children}
         </AppContext.Provider>

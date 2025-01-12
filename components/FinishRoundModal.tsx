@@ -1,125 +1,225 @@
-import { useState } from 'react';
-import { View, Modal, StyleSheet, Text, Touchable, TouchableOpacity, TextInput } from 'react-native';
+import { useContext, useState } from 'react';
+import { View, Modal, StyleSheet, Text, TouchableOpacity, TextInput, useColorScheme } from 'react-native';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import { AppContext } from '@/context';
+import { colors } from '@/styles/colors';
+import { Game } from '@/interfaces/game';
 
 interface FinishRoundModalProps {
     modalVisible: boolean;
     setModalVisible: (visible: boolean) => void;
 }
 
+const PlayerScoreCounter = ({
+    player,
+    handleAddPoints,
+    handleSubtractPoints,
+    dynamicPlayerCardTextColor,
+    dynamicTextColor,
+}: {
+    player: { score: number };
+    handleAddPoints: (points: number) => void;
+    handleSubtractPoints: (points: number) => void;
+    dynamicPlayerCardTextColor: string;
+    dynamicTextColor: string;
+}) => {
+    return (
+        <View style={styles.counter}>
+            <TouchableOpacity
+                style={[styles.subtractTenButton, styles.pointsButton, { backgroundColor: dynamicPlayerCardTextColor }]}
+                onPress={() => handleSubtractPoints(10)}
+            >
+                <Text style={{ color: dynamicTextColor }}>-10</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={[styles.oneButton, styles.pointsButton, { backgroundColor: dynamicPlayerCardTextColor }]}
+                onPress={() => handleSubtractPoints(1)}
+            >
+                <Text style={{ color: dynamicTextColor }}>-1</Text>
+            </TouchableOpacity>
+
+            <TextInput
+                value={player.score.toString()}
+                style={[styles.input, { color: dynamicTextColor }]}
+                editable={false}
+            />
+
+            <TouchableOpacity
+                style={[styles.oneButton, styles.pointsButton, { backgroundColor: dynamicPlayerCardTextColor }]}
+                onPress={() => handleAddPoints(1)}
+            >
+                <Text style={{ color: dynamicTextColor }}>+1</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={[styles.addTenButton, styles.pointsButton, { backgroundColor: dynamicPlayerCardTextColor }]}
+                onPress={() => handleAddPoints(10)}
+            >
+                <Text style={{ color: dynamicTextColor }}>+10</Text>
+            </TouchableOpacity>
+        </View>
+    );
+};
+
 export const FinishRoundModal = ({
     modalVisible,
-    setModalVisible
+    setModalVisible,
 }: FinishRoundModalProps) => {
+    const { currentGame, updateCurrentGame } = useContext(AppContext);
+    const [currentGameCopy, setCurrentGameCopy] = useState<Game>({ ...currentGame! });
+    const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
+    const players = currentGameCopy?.players || [];
+    const currentPlayer = players[currentPlayerIndex];
 
-    // TODO: Traer el obj juego y recorrer cada uno de los jugadores.
+    const [error, setError] = useState("");
 
-    const [points, setPoints] = useState(0);
-    const [error, setError] = useState('Texto de error');
-
-    const handleChange = (text: string) => {
-
-        const number = parseInt(text);
-
-        if (isNaN(number)) {
-            setError('Debes ingresar un número');
-            return;
-        }
-
-        setPoints(parseInt(text));
-    }
+    const colorScheme = useColorScheme();
+    const isDarkMode = colorScheme === "dark";
+    const dynamicBackgroundColor = isDarkMode ? colors.grey["950"] : colors.grey["50"];
+    const dynamicTextColor = isDarkMode ? colors.grey["200"] : colors.grey["900"];
+    const dynamicPlayerCardTextColor = isDarkMode ? colors.grey[500] : colors.grey[100];
 
     const handleAddPoints = (newPoints: number) => {
-        setPoints(prev => prev + newPoints);
-    }
+        setCurrentGameCopy((prev) => ({
+            ...prev,
+            players: prev.players?.map((player) =>
+                player.id === currentPlayer.id
+                    ? { ...player, score: player.score + newPoints }
+                    : player
+            ),
+        }));
+    };
 
     const handleSubtractPoints = (newPoints: number) => {
-        if (points - newPoints < 0) return;
-        setPoints(prev => prev - newPoints);
-    }
+        if (currentPlayer.score - newPoints < 0) {
+            setError('No puedes ingresar números negativos');
+            return;
+        }
+        setCurrentGameCopy((prev) => ({
+            ...prev,
+            players: prev.players?.map((player) =>
+                player.id === currentPlayer.id
+                    ? { ...player, score: player.score - newPoints }
+                    : player
+            ),
+        }));
+    };
 
+    const handleNextPlayer = () => {
+        if (currentPlayerIndex === players.length - 1) {
+            setCurrentPlayerIndex(0);
+        } else {
+            setCurrentPlayerIndex((prev) => prev + 1);
+        }
+    };
+
+    const handlePreviousPlayer = () => {
+        if (currentPlayerIndex === 0) return;
+        setCurrentPlayerIndex((prev) => prev - 1);
+    };
+
+    const closeModal = () => {
+        setCurrentPlayerIndex(0);
+        setModalVisible(false);
+    };
+
+    const finishRound = () => {
+        updateCurrentGame(currentGameCopy);
+        closeModal();
+    };
 
     return (
         <Modal
             animationType="fade"
             transparent={true}
             visible={modalVisible}
-            onRequestClose={() => {
-                setModalVisible(!modalVisible);
-            }}>
+            onRequestClose={() => setModalVisible(!modalVisible)}
+        >
             <View style={styles.centeredView}>
-                <View style={styles.modalView}>
-
+                <View style={[styles.modalView, { backgroundColor: dynamicBackgroundColor }]}>
                     <View style={styles.modalHeader}>
-                        <Text style={styles.modalHeaderText}>Terminar ronda</Text>
+                        <Text style={[styles.modalHeaderText, { color: dynamicTextColor }]}>Terminar ronda</Text>
 
-                        <TouchableOpacity onPress={() => setModalVisible(!modalVisible)} style={styles.closeModalButton}>
-                            <AntDesign name="closecircle" size={24} color="black" />
+                        <TouchableOpacity onPress={closeModal} style={styles.closeModalButton}>
+                            <AntDesign name="closecircle" size={24} color={dynamicTextColor} />
                         </TouchableOpacity>
                     </View>
 
                     <View style={styles.modalContent}>
                         <View style={{ marginBottom: 10, marginLeft: 10 }}>
-                            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Juan Pérez</Text>
-                            <Text>82 pts</Text>
+                            <Text
+                                style={{
+                                    fontWeight: 'bold',
+                                    fontSize: 16,
+                                    color: dynamicTextColor,
+                                }}
+                            >
+                                {currentPlayer.name}
+                            </Text>
+                            <Text style={{ color: dynamicTextColor }}>{currentPlayer.score} pts</Text>
                         </View>
 
-                        <View style={{
-                            flexDirection: 'row',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            padding: 10,
-                            gap: 1,
-                        }}>
-                            <TouchableOpacity style={[styles.subtractTenButton, styles.pointsButton]} onPress={() => handleSubtractPoints(10)}>
-                                <Text>-10</Text>
-                            </TouchableOpacity>
+                        <PlayerScoreCounter
+                            player={currentPlayer}
+                            handleAddPoints={handleAddPoints}
+                            handleSubtractPoints={handleSubtractPoints}
+                            dynamicPlayerCardTextColor={dynamicPlayerCardTextColor}
+                            dynamicTextColor={dynamicTextColor}
+                        />
 
-                            <TouchableOpacity style={[styles.oneButton, styles.pointsButton]} onPress={() => handleSubtractPoints(1)}>
-                                <Text>-1</Text>
-                            </TouchableOpacity>
-
-                            <TextInput
-                                value={points.toString()}
-                                onChangeText={handleChange}
-                                style={styles.input}
-                            />
-
-                            <TouchableOpacity style={[styles.oneButton, styles.pointsButton]} onPress={() => handleAddPoints(1)}>
-                                <Text>+1</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity style={[styles.addTenButton, styles.pointsButton]} onPress={() => handleAddPoints(10)}>
-                                <Text>+10</Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        { }
-                        <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>
+                        {error && <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>}
                     </View>
 
                     <View style={styles.modalFooter}>
                         <View style={styles.bottomModalButtons}>
-                            <TouchableOpacity style={styles.bottomModalButton}>
-                                <Text style={{ textAlign: 'center', fontWeight: 'bold' }}>Anterior</Text>
+                            <TouchableOpacity
+                                style={[styles.bottomModalButton, { backgroundColor: dynamicPlayerCardTextColor }]}
+                                onPress={handlePreviousPlayer}
+                            >
+                                <Text
+                                    style={{
+                                        textAlign: 'center',
+                                        fontWeight: 'bold',
+                                        color: dynamicTextColor,
+                                    }}
+                                >
+                                    Anterior
+                                </Text>
                             </TouchableOpacity>
 
-                            <TouchableOpacity style={styles.bottomModalButton}>
-                                <Text style={{ textAlign: 'center', fontWeight: 'bold' }}>Siguiente</Text>
-                            </TouchableOpacity>
+                            {currentPlayerIndex === players.length - 1 ? (
+                                <TouchableOpacity
+                                    style={{ ...styles.bottomModalButton, backgroundColor: colors.blue[500] }}
+                                    onPress={finishRound}
+                                >
+                                    <Text style={{ textAlign: 'center', fontWeight: 'bold', color: 'white' }}>
+                                        Finalizar
+                                    </Text>
+                                </TouchableOpacity>
+                            ) : (
+                                <TouchableOpacity
+                                    style={[styles.bottomModalButton, { backgroundColor: dynamicPlayerCardTextColor }]}
+                                    onPress={handleNextPlayer}
+                                >
+                                    <Text
+                                        style={{
+                                            textAlign: 'center',
+                                            fontWeight: 'bold',
+                                            color: dynamicTextColor,
+                                        }}
+                                    >
+                                        Siguiente
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
                         </View>
                     </View>
-
-
-
-
-
                 </View>
             </View>
         </Modal>
-    )
-}
-
+    );
+};
 
 const styles = StyleSheet.create({
     centeredView: {
@@ -139,33 +239,13 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 5,
     },
-
-
     modalContent: {
         flex: 1,
     },
-
     modalFooter: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-    },
-
-    button: {
-        borderRadius: 20,
-        padding: 10,
-        elevation: 2,
-    },
-    buttonOpen: {
-        backgroundColor: '#F194FF',
-    },
-    buttonClose: {
-        backgroundColor: '#2196F3',
-    },
-    textStyle: {
-        color: 'white',
-        fontWeight: 'bold',
-        textAlign: 'center',
     },
     modalHeader: {
         flexDirection: 'row',
@@ -182,10 +262,13 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 10,
     },
-    closeButtonText: {
-        fontWeight: 'bold',
+    counter: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 10,
+        gap: 1,
     },
-
     bottomModalButtons: {
         alignSelf: 'baseline',
         gap: 10,
@@ -210,8 +293,7 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 10,
         borderBottomRightRadius: 10,
     },
-    oneButton: {
-    },
+    oneButton: {},
     subtractTenButton: {
         borderTopLeftRadius: 10,
         borderBottomLeftRadius: 10,

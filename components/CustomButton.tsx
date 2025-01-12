@@ -1,103 +1,86 @@
-import { colors } from '@/styles/colors';
-import { StyleSheet, Text, TouchableOpacity } from 'react-native'
+import { colors } from "@/styles/colors";
+import { StyleSheet, Text, TouchableOpacity, StyleProp, ViewStyle, TextStyle, View, useColorScheme } from "react-native";
+import { ReactNode } from "react";
+
+// TODO: Agregar respuestas hapitcas al interactuar con botones
 
 interface CustomButtonProps {
     bgColor?: string;
     disabled?: boolean;
     onPress: () => void;
     textColor?: string;
-    title: string;
-    variant?: 'solid' | 'outline';
+    title?: string; // Ahora opcional
+    icon?: ReactNode; // Nuevo prop para aceptar un ícono
+    variant?: "solid" | "outline";
 }
-
 
 export const CustomButton = ({
     bgColor = colors.blue[600],
     disabled = false,
     onPress,
-    textColor = "#FFFFFF",
+    textColor,
     title,
-    variant = 'solid'
+    icon,
+    variant = "solid",
 }: CustomButtonProps) => {
+    const colorScheme = useColorScheme();
+    const isDarkMode = colorScheme === "dark"; // Detecta si está en modo oscuro
 
-    const getBgColor = () => {
-        switch (variant) {
-            case 'solid':
-                if (disabled) {
-                    return colors.grey[500];
-                }
-                return bgColor;
-            case 'outline':
-                if (disabled) {
-                    return colors.grey[500];
-                }
-                return "#FFFFFF";
-            default:
-                return bgColor;
-        }
-    }
+    const getStyles = () => {
+        const backgroundColor = disabled
+            ? colors.grey[500]
+            : variant === "outline"
+                ? isDarkMode
+                    ? colors.grey["900"] // Fondo oscuro en modo oscuro
+                    : "#FFFFFF" // Fondo blanco en modo claro
+                : bgColor;
 
-    const getTextColor = () => {
-        switch (variant) {
-            case 'solid':
-                if (disabled) {
-                    return colors.grey[500];
-                }
-                return "#FFFFFF";
-            case 'outline':
-                if (disabled) {
-                    return colors.grey[500];
-                }
-                return colors.blue[600];
-            default:
-                return "#FFFFFF";
-        }
-    }
+        const textColorFinal = disabled
+            ? colors.grey[500]
+            : variant === "outline"
+                ? colors.blue[600]
+                : textColor || "#FFFFFF";
 
-    const getBorderColor = () => {
-        switch (variant) {
-            case 'solid':
-                return 'transparent';
-            case 'outline':
-                if (disabled) {
-                    return colors.grey[500];
-                }
-                return colors.blue[600];
-            default:
-                return 'transparent';
-        }
-    }
+        const borderColor = disabled
+            ? colors.grey[500]
+            : variant === "outline"
+                ? colors.blue[600]
+                : "transparent";
 
+        return {
+            container: {
+                backgroundColor,
+                borderColor,
+                borderWidth: variant === "outline" ? 2 : 0,
+                paddingVertical: 14,
+                borderRadius: 100,
+                alignItems: "center",
+                justifyContent: "center",
+                flexDirection: "row", // Para alinear texto e ícono
+                marginBottom: 20,
+                width: "100%",
+            } as StyleProp<ViewStyle>,
+            text: {
+                fontSize: 18,
+                fontWeight: "bold",
+                color: textColorFinal,
+                marginLeft: icon && title ? 8 : 0, // Espacio entre ícono y texto
+            } as StyleProp<TextStyle>,
+        };
+    };
+
+    const styles = getStyles();
 
     return (
         <TouchableOpacity
             disabled={disabled}
-            style={{
-                backgroundColor: getBgColor(),
-                borderColor: getBorderColor(),
-                borderWidth: variant === 'outline' ? 2 : 0,
-                padding: 20,
-                borderRadius: 10,
-                alignItems: "center",
-                marginBottom: 20,
-                width: "100%",
-            }}
+            style={styles.container}
             onPress={onPress}
         >
-            <Text
-                style={{
-                    fontSize: 18,
-                    fontWeight: "bold",
-                    color: textColor,
-                }}
-            >
-                {title}
-            </Text>
+            {icon && <View>{icon}</View>}
+            {title && <Text style={styles.text}>{title}</Text>}
         </TouchableOpacity>
-    )
-}
+    );
+};
 
-const styles = StyleSheet.create({})
-
-export default CustomButton
-
+export default CustomButton;

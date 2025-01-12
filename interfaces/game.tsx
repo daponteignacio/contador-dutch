@@ -5,10 +5,13 @@ export interface Player {
     score: number;
 }
 
+export type FinishMode = 'first-to-lose' | 'last-to-win';
+
 export interface Game {
-    id: number;
+    id: string;
     name: string
     scoreLimit: number;
+    finishMode: FinishMode;
     date: string;
     players: Player[];
 }

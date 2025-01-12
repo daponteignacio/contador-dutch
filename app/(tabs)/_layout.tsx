@@ -1,52 +1,62 @@
-import { Platform } from "react-native";
-import { Tabs } from "expo-router";
-
+import React, { useRef, useEffect, useContext, Fragment } from 'react';
+import { View, Animated, Easing, StyleSheet } from 'react-native';
+import { Tabs, usePathname, useRouter } from "expo-router";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { HapticTab } from "@/components/HapticTab";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { colors } from "@/styles/colors";
-
-// TODO: Cuando hay una partida en curso agregar un icono animado a la tab de Partida que desaparece solo si estoy en la pantalla de la partida.
-// TODO: Habilitar respuesta háptica en las tabs.
-// TODO: Sacar highlite cuando aprieto una tab.
-
+import { AppContext } from "@/context";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { currentGame } = useContext(AppContext);
+  const pathname = usePathname();
+
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (currentGame) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.5,
+            duration: 800,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 800,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }
+  }, [currentGame]);
 
   return (
     <Tabs
       screenOptions={{
-        // tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
         tabBarActiveTintColor: colors.blue[700],
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
         tabBarStyle: {
-
-          height: 70, // Altura de la tab bar
-          backgroundColor: Colors[colorScheme ?? "light"].background, // Fondo dinámico
-          // borderRadius: 20, // Bordes redondeados
-          // marginHorizontal: 16, // Separación horizontal para el efecto flotante
-          // marginBottom: 20, // Separación del borde inferior
-          // position: "absolute", // Posicionar flotante
-          // borderTopWidth: 0, // Eliminar borde superior
-          // elevation: 10, // Sombra en Android
-          // shadowColor: "#000", // Sombra en iOS
-          // shadowOpacity: 0.2,
-          // shadowOffset: { width: 0, height: 4 },
-          // shadowRadius: 6,
+          height: 70,
+          backgroundColor: Colors[colorScheme ?? "light"].background,
         },
         tabBarLabelStyle: {
-          fontSize: 12, // Ajustar tamaño del texto
-          marginBottom: 10, // Separar texto del borde inferior
+          fontSize: 12,
+          marginBottom: 10,
         },
         tabBarIconStyle: {
-          marginTop: 5, // Espacio adicional entre icono y texto
+          marginTop: 5,
         },
-        animation: 'fade'
+        animation: "fade",
       }}
     >
       <Tabs.Screen
@@ -63,8 +73,18 @@ export default function TabLayout() {
         options={{
           title: "Partida",
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="cards" size={28} color={color} />
-          ), // Icono de naipes
+            <View>
+              <MaterialCommunityIcons name="cards" size={28} color={color} />
+              {currentGame && pathname !== '/partida' && (
+                <Fragment>
+                  <Animated.View style={{
+                    ...styles.greenDot, transform: [{ scale: pulseAnim }], opacity: pulseAnim.interpolate({ inputRange: [1, 1.5], outputRange: [1, 0] }), backgroundColor: colors.green[500]
+                  }} />
+                  <View style={styles.greenDot} />
+                </Fragment>
+              )}
+            </View>
+          ),
         }}
       />
       <Tabs.Screen
@@ -73,9 +93,31 @@ export default function TabLayout() {
           title: "Reglas",
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons name="format-list-bulleted" size={28} color={color} />
-          ), // Icono de listado
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="more"
+        options={{
+          title: "Más",
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="more-horiz" size={24} color={color} />
+          ),
         }}
       />
     </Tabs>
   );
 }
+
+
+const styles = StyleSheet.create({
+  greenDot: {
+    position: "absolute",
+    top: -5,
+    right: -5,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: colors.green[500],
+  },
+});

@@ -1,119 +1,176 @@
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View, useColorScheme } from "react-native";
 import CustomButton from "@/components/CustomButton";
-import { Player } from "@/interfaces/game";
 import { colors } from "@/styles/colors";
-import { useContext, useState } from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, ScrollView } from "react-native";
 import Entypo from '@expo/vector-icons/Entypo';
-import { AppContext } from "@/context";
-import { router } from "expo-router";
 import { PlayersList } from "@/components/PlayersList";
+import { useCreate } from "@/hooks/useCreate";
+import { useState } from "react";
+import AntDesign from '@expo/vector-icons/AntDesign';
+import SegmentedControl from "@react-native-segmented-control/segmented-control";
+import { ScrollView } from "react-native";
 
-// TODO: Al tener el teclado levantado para escribir el nombre de un jugador se pega el boton de iniciar partida y si por error se apreta se puede mostrar uno de los mensajes de error encimado sobre todo el contenido.
-// TODO: Para agregar un jugador el boton de agregar jugador debe primero cerrar el teclado y luego en un segundo click agregar el jugador.
+const CreatePage = () => {
+    const {
+        form,
+        jugadores,
+        jugadorName,
+        finishMode,
+        addJugador,
+        handleCreateGame,
+        setForm,
+        setJugadores,
+        setJugadorName,
+        setFinishMode
+    } = useCreate();
 
-const Create = () => {
-    const { newGame } = useContext(AppContext);
+    const colorScheme = useColorScheme();
+    const isDarkMode = colorScheme === "dark";
 
-    const [form, setForm] = useState({
-        nombre: "",
-        limite: "",
-    });
+    const [selectedIndex, setSelectedIndex] = useState(0);
 
-    const [error, setError] = useState("");
-    const [jugadorName, setJugadorName] = useState("");
-    const [jugadores, setJugadores] = useState<Player[]>([]);
-
-    const addJugador = (name: string) => {
-        if (name.trim() === "") return;
-
-        const newJugador: Player = {
-            id: jugadores.length + 1,
-            name,
-            score: 0,
-        };
-
-        setJugadores([...jugadores, newJugador]);
+    const explainModes = () => {
+        Alert.alert(
+            "Modo de finalización",
+            "Primero en perder: El juego termina con el primer jugador en alcanzar el límite de puntos.\n\n" +
+            "Último en ganar: El juego termina con el último jugador en pie sin pasar el límite de puntos.",
+            [{ text: "Entendido" }]
+        );
     };
 
-
-    const handleCreateGame = () => {
-
-        // if (form.nombre.trim() === "") {
-        //     setError("Debe ingresar un nombre para la partida");
-        //     return;
-        // }
-
-        const parsedNumber = parseInt(form.limite);
-        if (isNaN(parsedNumber)) {
-            setError("El límite de puntos debe ser un número entero");
-            return;
-        }
-
-        if (parsedNumber < 0) {
-            setError("El límite de puntos debe ser mayor a 0");
-            return;
-        }
-
-        // if (jugadores.length < 2) {
-        //     setError("Debe haber al menos 2 jugadores para iniciar la partida");
-        //     return;
-        // }
-
-        setError("");
-
-        newGame(form.nombre, parsedNumber, jugadores);
-        router.replace("/(tabs)/partida");
-    }
-
     return (
-        <View style={styles.container}>
+        <ScrollView
+            contentContainerStyle={[
+                styles.container,
+                { backgroundColor: isDarkMode ? colors.grey["950"] : colors.grey["50"] },
+            ]}
+        >
             <View style={styles.main}>
+                <View
+                    style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        gap: 10,
+                        marginBottom: 10,
+                    }}
+                >
+                    <View style={styles.inputGroup}>
+                        <Text
+                            style={[
+                                styles.inputLabel,
+                                { color: isDarkMode ? colors.grey["200"] : colors.grey["900"] },
+                            ]}
+                        >
+                            Nombre de la partida
+                        </Text>
+                        <TextInput
+                            style={[
+                                styles.input,
+                                {
+                                    backgroundColor: isDarkMode ? colors.grey["800"] : colors.white,
+                                    color: isDarkMode ? colors.grey["200"] : colors.grey["900"],
+                                    borderColor: isDarkMode ? colors.grey["700"] : colors.grey["300"],
+                                },
+                            ]}
+                            placeholder="Ingrese un nombre"
+                            placeholderTextColor={isDarkMode ? colors.grey["600"] : colors.grey["200"]}
+                            value={form.nombre}
+                            onChangeText={(text) =>
+                                setForm({
+                                    ...form,
+                                    nombre: text,
+                                })
+                            }
+                        />
+                    </View>
 
-                <View style={styles.header}>
-                    <Text style={styles.headerText}>Nombre de la partida</Text>
-                    <TextInput
-                        style={styles.headerInput}
-                        placeholder="Nombre de la partida"
-                        value={form.nombre}
-                        onChangeText={text => setForm({
-                            ...form,
-                            nombre: text,
-                        })}
-                    />
+                    <View style={styles.inputGroup}>
+                        <Text
+                            style={[
+                                styles.inputLabel,
+                                { color: isDarkMode ? colors.grey["200"] : colors.grey["900"] },
+                            ]}
+                        >
+                            Límite de puntos
+                        </Text>
+                        <TextInput
+                            style={[
+                                styles.input,
+                                {
+                                    backgroundColor: isDarkMode ? colors.grey["800"] : colors.white,
+                                    color: isDarkMode ? colors.grey["200"] : colors.grey["900"],
+                                    borderColor: isDarkMode ? colors.grey["700"] : colors.grey["300"],
+                                },
+                            ]}
+                            placeholder="200"
+                            placeholderTextColor={isDarkMode ? colors.grey["600"] : colors.grey["200"]}
+                            value={form.limite.toString()}
+                            keyboardType="number-pad"
+                            onChangeText={(text) => setForm({ ...form, limite: text })}
+                        />
+                    </View>
                 </View>
 
-                <View style={styles.header}>
-                    <Text style={styles.headerText}>Límite de puntos</Text>
-                    <TextInput
-                        style={styles.headerInput}
-                        placeholder="Límite de puntos"
-                        value={form.limite.toString()}
-                        keyboardType="number-pad"
-                        onChangeText={text => {
-                            setForm({
-                                ...form,
-                                limite: text,
-                            });
+
+                <View style={{ gap: 10, justifyContent: 'space-between', width: '100%', marginTop: 10 }}>
+                    <View style={{ flexDirection: "row", gap: 10, width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Text
+                            style={[
+                                styles.inputLabel,
+                                { color: isDarkMode ? colors.grey["200"] : colors.grey["900"] },
+                            ]}
+                        >
+                            Modo de finalización
+                        </Text>
+
+                        <TouchableOpacity onPress={explainModes}>
+                            <AntDesign name="infocirlceo" size={24} color={colors.blue["500"]} />
+                        </TouchableOpacity>
+                    </View>
+
+                    <SegmentedControl
+                        values={['Primero en perder', 'Último en ganar']}
+                        style={{ height: 50 }}
+                        selectedIndex={selectedIndex}
+                        onChange={(event) => {
+                            setSelectedIndex(event.nativeEvent.selectedSegmentIndex);
+                            setFinishMode(event.nativeEvent.selectedSegmentIndex === 0 ? "first-to-lose" : "last-to-win");
                         }}
                     />
                 </View>
 
-                <View>
-                    <Text style={styles.headerText}>Jugadores</Text>
-                    <View style={{
-                        gap: 10,
-                    }}>
-                        <Text>Ingrese el nombre del jugador</Text>
+                <View style={{ marginTop: 20 }}>
+                    <Text
+                        style={[
+                            styles.inputLabel,
+                            { color: isDarkMode ? colors.grey["200"] : colors.grey["900"] },
+                        ]}
+                    >
+                        Jugadores
+                    </Text>
+                    <View style={{ gap: 10 }}>
+                        <Text
+                            style={[
+                                { color: isDarkMode ? colors.grey["200"] : colors.grey["900"] },
+                            ]}
+                        >
+                            Ingrese el nombre del jugador
+                        </Text>
 
                         <View style={styles.inputRow}>
                             <TextInput
-                                style={{
-                                    ...styles.headerInput,
-                                    flex: 1,
-                                }}
+                                style={[
+                                    styles.input,
+                                    {
+                                        flex: 1,
+                                        backgroundColor: isDarkMode ? colors.grey["800"] : colors.white,
+                                        color: isDarkMode ? colors.grey["200"] : colors.grey["900"],
+                                        borderColor: isDarkMode ? colors.grey["700"] : colors.grey["300"],
+                                    },
+                                ]}
                                 placeholder="Nombre del jugador"
+                                placeholderTextColor={isDarkMode ? colors.grey["600"] : colors.grey["200"]}
                                 value={jugadorName}
-                                onChangeText={text => setJugadorName(text)}
+                                onChangeText={(text) => setJugadorName(text)}
                             />
                             <TouchableOpacity
                                 disabled={jugadorName.trim() === ""}
@@ -122,56 +179,54 @@ const Create = () => {
                                     setJugadorName("");
                                 }}
                                 style={{
-                                    backgroundColor: jugadorName.trim() === "" ? colors.grey[500] : colors.blue[500],
+                                    backgroundColor: jugadorName.trim() === ""
+                                        ? colors.grey["500"]
+                                        : colors.blue["700"],
                                     padding: 10,
                                     borderRadius: 10,
                                 }}
                             >
-                                <Entypo name="add-user" size={24} color="white" />
+                                <Entypo name="add-user" size={24} color={colors.white} />
                             </TouchableOpacity>
                         </View>
                     </View>
                 </View>
 
                 <PlayersList jugadores={jugadores} setJugadores={setJugadores} />
-
             </View>
 
-            <View style={{ alignItems: "center", width: "100%", }}>
-                <Text style={styles.errorText}>{error}</Text>
+            <View style={{ alignItems: "center", width: "100%" }}>
                 <CustomButton
                     title="Iniciar Partida"
                     onPress={handleCreateGame}
-                    bgColor={colors.green[500]}
+                    bgColor={colors.green["500"]}
                 />
             </View>
-        </View>
+        </ScrollView>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
-        backgroundColor: "#FFFFFF",
+        paddingHorizontal: 20,
+        paddingVertical: 10,
     },
     main: {
         flex: 1,
     },
-    header: {
+    inputGroup: {
+        flex: 1,
         gap: 10,
-        marginBottom: 10,
     },
-    headerText: {
+    inputLabel: {
         fontSize: 16,
         fontWeight: "bold",
-        color: "#333333",
     },
-    headerInput: {
+    input: {
         padding: 10,
         borderRadius: 10,
         borderWidth: 1,
-        borderColor: "#CCCCCC",
     },
     inputRow: {
         flexDirection: "row",
@@ -180,11 +235,6 @@ const styles = StyleSheet.create({
         gap: 10,
         width: "100%",
     },
-    errorText: {
-        color: colors.red[500],
-        fontSize: 16,
-        marginBottom: 10,
-    },
 });
 
-export default Create;
+export default CreatePage;

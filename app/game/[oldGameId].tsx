@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ScrollView } from "react-native";
+import { StyleSheet, Text, View, ScrollView, useColorScheme } from "react-native";
 import { useLocalSearchParams } from "expo-router/build/hooks";
 import { router } from "expo-router";
 import Animated, { SlideInLeft } from "react-native-reanimated";
@@ -17,58 +17,75 @@ const HistoryPage = () => {
 
     useEffect(() => {
         if (oldGameId) {
-            selectOldGame(Number(oldGameId));
+            selectOldGame(oldGameId as string);
         }
     }, [oldGameId]);
 
     const playersSorted: Player[] = [...currentOldGame?.players ?? []].sort((a, b) => a.score - b.score);
 
+    const colorScheme = useColorScheme(); // Detecta el esquema de color
+    const isDarkMode = colorScheme === "dark"; // Verifica si está en modo oscuro
+
+    const dynamicBackgroundColor = isDarkMode ? colors.grey["950"] : colors.grey["50"];
+    const dynamicTextColor = isDarkMode ? colors.grey["200"] : colors.grey["900"];
+    const dynamicSubTextColor = isDarkMode ? colors.grey["400"] : colors.grey["600"];
+    const dynamicDetailsCardColor = isDarkMode ? colors.grey[900] : colors.white;
+    const dynamicGameCardLabelColor = isDarkMode ? colors.grey[300] : colors.grey[600];
+    const dynamicGameCardValueColor = isDarkMode ? colors.white : colors.white;
+    const dynamicPlayerCardBackgroundColor = isDarkMode ? colors.grey["800"] : colors.grey["100"];
+    const dynamicPlayerCardTextColor = isDarkMode ? colors.grey["200"] : colors.grey["900"];
 
     if (!oldGameId) return;
 
     return (
-        <ScrollView style={styles.container}>
-            <View style={styles.card}>
-                <View style={styles.header}>
-                    <Text style={styles.label}>Partida</Text>
-                    <Text style={styles.value}>{currentOldGame?.name}</Text>
+        <View style={[styles.container, { backgroundColor: dynamicBackgroundColor }]}>
+            <View style={{ flex: 1 }}>
+                <View style={[styles.card, { backgroundColor: dynamicDetailsCardColor }]}>
+                    <View style={styles.header}>
+                        <Text style={[styles.label, { color: dynamicGameCardLabelColor }]}>Partida</Text>
+                        <Text style={[styles.value, { color: dynamicGameCardValueColor }]}>{currentOldGame?.name}</Text>
+                    </View>
+                    <View style={styles.details}>
+                        <View style={styles.detailItem}>
+                            <Text style={[styles.label, { color: dynamicGameCardLabelColor }]}>Creación</Text>
+                            <Text style={[styles.value, { color: dynamicGameCardValueColor }]}>{currentOldGame?.date}</Text>
+                        </View>
+                        <View style={styles.detailItem}>
+                            <Text style={[styles.label, { color: dynamicGameCardLabelColor }]}>Límite</Text>
+                            <Text style={[styles.value, { color: dynamicGameCardValueColor }]}>{currentOldGame?.scoreLimit} pts</Text>
+                        </View>
+                    </View>
                 </View>
-                <View style={styles.details}>
-                    <View style={styles.detailItem}>
-                        <Text style={styles.label}>Creación</Text>
-                        <Text style={styles.value}>{currentOldGame?.date}</Text>
-                    </View>
-                    <View style={styles.detailItem}>
-                        <Text style={styles.label}>Límite</Text>
-                        <Text style={styles.value}>{currentOldGame?.scoreLimit} pts</Text>
-                    </View>
+
+                {/* Lista de jugadores animada */}
+                <View style={{ height: 400 }}>
+                    <Text style={[styles.headerText, { color: dynamicTextColor }]}>Jugadores ({playersSorted.length})</Text>
+
+                    <ScrollView contentContainerStyle={styles.playerList}>
+                        {playersSorted.map((player, index) => {
+                            const baseColor = dynamicPlayerCardTextColor;
+                            const color = index === 0 ? colors.green[500] : index === playersSorted.length - 1 ? colors.red[500] : baseColor;
+
+                            return (
+                                <Animated.View
+                                    key={player.id}
+                                    entering={SlideInLeft.duration(500).delay(index * 200)}
+                                    style={[styles.playerCard, { backgroundColor: dynamicPlayerCardBackgroundColor }]}
+                                >
+                                    <Text style={{ ...styles.playerName, color }}>{player.name}</Text>
+                                    <Text style={{ ...styles.playerName, color }}>{player.score}</Text>
+                                </Animated.View>
+                            )
+                        })}
+                    </ScrollView>
                 </View>
             </View>
 
-            {/* Lista de jugadores animada */}
-            <View>
-                <Text style={styles.headerText}>Jugadores ({playersSorted.length})</Text>
-
-                <ScrollView contentContainerStyle={styles.playerList}>
-                    {playersSorted.map((player, index) => {
-                        const color = index === 0 ? colors.green[500] : index === playersSorted.length - 1 ? colors.red[500] : colors.black;
-
-                        return (
-                            <Animated.View
-                                key={player.id}
-                                entering={SlideInLeft.duration(500).delay(index * 200)}
-                                style={styles.playerCard}
-                            >
-                                <Text style={{ ...styles.playerName, color }}>{player.name}</Text>
-                                <Text style={{ ...styles.playerName, color }}>{player.score}</Text>
-                            </Animated.View>
-                        )
-                    })}
-                </ScrollView>
+            <View style={{ gap: 16 }}>
+                <Text style={{ color: colors.grey[300], textAlign: 'center' }} >ID: {currentOldGame?.id}</Text>
+                <CustomButton title="Volver" onPress={() => router.back()} bgColor={colors.blue[500]} />
             </View>
-
-            <CustomButton title="Volver" onPress={() => router.back()} bgColor={colors.blue[500]} />
-        </ScrollView>
+        </View>
     );
 };
 

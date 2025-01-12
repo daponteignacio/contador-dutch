@@ -1,44 +1,78 @@
-import React, { useContext, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
-import { useRouter } from "expo-router";
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, useColorScheme } from "react-native";
 import Animated, { SlideInLeft } from "react-native-reanimated";
 import CustomButton from "@/components/CustomButton";
 import { colors } from "@/styles/colors";
-import { AppContext } from "@/context";
-
+import { useHome } from "@/hooks/useHome";
 
 const HomeScreen = () => {
-  const router = useRouter();
-  const { games } = useContext(AppContext);
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
+  const { currentGame, games, handleNewGame, router } = useHome();
 
-
-
-  const handleNewGame = () => {
-    router.push("/game/create");
-  };
+  if (!games.length && !currentGame) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: isDarkMode ? colors.grey["950"] : colors.grey["50"] },
+          { justifyContent: 'center', alignItems: 'center' },
+        ]}
+      >
+        <Text style={[styles.headerText, { color: isDarkMode ? colors.grey["200"] : colors.grey["900"] }]}>
+          No hay partidas guardadas
+        </Text>
+        <Text
+          style={[
+            styles.headerText,
+            {
+              marginBottom: 20,
+              color: isDarkMode ? colors.grey["200"] : colors.grey["900"],
+              fontWeight: "normal",
+            },
+          ]}
+        >
+          Cree una nueva partida para comenzar
+        </Text>
+        <CustomButton title="Nueva partida" onPress={handleNewGame} bgColor={colors.green["500"]} />
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      {/* Botón de Nueva Partida */}
-      <CustomButton title="Nueva partida" onPress={handleNewGame} bgColor={colors.green[500]} />
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: isDarkMode ? colors.grey["950"] : colors.grey["50"] },
+      ]}
+    >
+      <CustomButton title="Nueva partida" onPress={handleNewGame} bgColor={colors.green["500"]} />
 
-      {/* Historial de partidas */}
-      <Text style={styles.historyTitle}>Historial de partidas</Text>
+      {games.length > 0 && (
+        <Text style={[styles.historyTitle, { color: isDarkMode ? colors.grey["200"] : colors.grey["900"] }]}>
+          Historial de partidas
+        </Text>
+      )}
       <ScrollView contentContainerStyle={styles.historyContainer}>
         {games.map((game, index) => (
           <Animated.View
             key={game.id}
-            entering={SlideInLeft
-              .duration(500)
-              .delay(index * 200)} // Agregamos delay progresivo
-            style={styles.gameCard}
+            entering={SlideInLeft.duration(500).delay(index * 200)}
+            style={[
+              styles.gameCard,
+              { backgroundColor: isDarkMode ? colors.grey["800"] : colors.grey["100"] },
+            ]}
           >
             <TouchableOpacity
               style={styles.touchableCard}
               onPress={() => router.push(`/game/${game.id}`)}
             >
-              <Text style={styles.gameDate}>{game.date}</Text>
-              <Text style={styles.gameScore}>{game.scoreLimit} pts</Text>
+              <Text style={[styles.gameDate, { color: isDarkMode ? colors.grey["200"] : colors.grey["900"] }]}>
+                {game.date}
+              </Text>
+              <Text style={[styles.gameScore, { color: isDarkMode ? colors.grey["200"] : colors.grey["900"] }]}>
+                {game.scoreLimit} pts
+              </Text>
             </TouchableOpacity>
           </Animated.View>
         ))}
@@ -51,31 +85,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: "#FFFFFF",
-  },
-  newGameButton: {
-    backgroundColor: "#4CAF50",
-    padding: 20,
-    borderRadius: 10,
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  newGameButtonText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#FFFFFF",
   },
   historyTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#333333",
     marginBottom: 10,
   },
   historyContainer: {
     paddingBottom: 20,
   },
   gameCard: {
-    backgroundColor: "#F0F0F0",
     marginBottom: 10,
     borderRadius: 10,
   },
@@ -87,12 +106,15 @@ const styles = StyleSheet.create({
   },
   gameDate: {
     fontSize: 16,
-    color: "#333333",
   },
   gameScore: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#333333",
+  },
+  headerText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
 
