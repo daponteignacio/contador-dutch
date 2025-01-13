@@ -1,13 +1,10 @@
-import { StyleSheet, Text, View, ScrollView, useColorScheme } from "react-native";
+import { StyleSheet, Text, View, ScrollView, useColorScheme, Image } from "react-native";
 import { useLocalSearchParams } from "expo-router/build/hooks";
 import { router } from "expo-router";
-import Animated, { SlideInLeft } from "react-native-reanimated";
+import Animated, { BounceIn, SlideInLeft } from "react-native-reanimated";
 import CustomButton from "@/components/CustomButton";
 import { colors } from "@/styles/colors";
-
-// TODO: Puede haber empates, arreglar eso en el listado
-
-import { Player } from "@/interfaces/game";
+import { FinishMode, Player } from "@/interfaces/game";
 import { useContext, useEffect } from "react";
 import { AppContext } from "@/context";
 
@@ -21,7 +18,10 @@ const HistoryPage = () => {
         }
     }, [oldGameId]);
 
-    const playersSorted: Player[] = [...currentOldGame?.players ?? []].sort((a, b) => a.score - b.score);
+
+    const playersSorted = currentOldGame?.players.sort((a, b) => a.score - b.score) || [];
+    const winner = playersSorted[0];
+
 
     const colorScheme = useColorScheme(); // Detecta el esquema de color
     const isDarkMode = colorScheme === "dark"; // Verifica si está en modo oscuro
@@ -37,18 +37,37 @@ const HistoryPage = () => {
 
     if (!oldGameId) return;
 
+    const getModoFinalizacion = (finishMode?: FinishMode) => {
+        if (!finishMode) return "Desconocido";
+
+        switch (finishMode) {
+            case FinishMode.LAST_TO_WIN:
+                return "Último en ganar";
+            case FinishMode.FIRST_TO_LOSE:
+                return "Primero en perder";
+            default:
+                return "Desconocido";
+        }
+    }
+
     return (
-        <View style={[styles.container, { backgroundColor: dynamicBackgroundColor }]}>
+        <ScrollView style={[styles.container, { backgroundColor: dynamicBackgroundColor }]}>
             <View style={{ flex: 1 }}>
-                <View style={[styles.card, { backgroundColor: dynamicDetailsCardColor }]}>
-                    <View style={styles.header}>
-                        <Text style={[styles.label, { color: dynamicGameCardLabelColor }]}>Partida</Text>
-                        <Text style={[styles.value, { color: dynamicGameCardValueColor }]}>{currentOldGame?.name}</Text>
+                <View style={[styles.card, { backgroundColor: dynamicDetailsCardColor, gap: 20 }]}>
+                    <View style={styles.details}>
+                        <View style={styles.detailItem}>
+                            <Text style={[styles.label, { color: dynamicGameCardLabelColor }]}>Partida</Text>
+                            <Text style={[styles.value, { color: dynamicGameCardValueColor }]}>{currentOldGame?.name}</Text>
+                        </View>
+                        <View style={styles.detailItem}>
+                            <Text style={[styles.label, { color: dynamicGameCardLabelColor }]}>Creación</Text>
+                            <Text style={[styles.value, { color: dynamicGameCardValueColor }]}>{currentOldGame?.date} pts</Text>
+                        </View>
                     </View>
                     <View style={styles.details}>
                         <View style={styles.detailItem}>
-                            <Text style={[styles.label, { color: dynamicGameCardLabelColor }]}>Creación</Text>
-                            <Text style={[styles.value, { color: dynamicGameCardValueColor }]}>{currentOldGame?.date}</Text>
+                            <Text style={[styles.label, { color: dynamicGameCardLabelColor }]}>Modo de finalización</Text>
+                            <Text style={[styles.value, { color: dynamicGameCardValueColor }]}>{getModoFinalizacion(currentOldGame?.finishMode)}</Text>
                         </View>
                         <View style={styles.detailItem}>
                             <Text style={[styles.label, { color: dynamicGameCardLabelColor }]}>Límite</Text>
@@ -56,6 +75,33 @@ const HistoryPage = () => {
                         </View>
                     </View>
                 </View>
+
+                <Animated.View
+                    entering={BounceIn.duration(500).delay(500)}
+                    style={{
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: 20,
+                        maxWidth: '100%', // Limita el ancho del contenedor
+                    }}>
+                    <Text style={[{ marginBottom: 10, color: dynamicTextColor, textAlign: 'center' }]}>Ganador</Text>
+
+                    <View style={{
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: 20,
+                        flexDirection: 'row',
+                        maxWidth: '100%', // Limita el ancho del contenedor
+                        overflow: 'hidden', // Oculta cualquier contenido que exceda los límites 
+                    }}>
+
+
+                        <Image style={styles.littleStar} source={require('@/assets/star.png')} />
+                        <Text style={[styles.winnerText, { textAlign: 'center', flexShrink: 1 }]}>{winner.name}</Text>
+                        <Image style={styles.littleStar} source={require('@/assets/star.png')} />
+                    </View>
+
+                </Animated.View>
 
                 {/* Lista de jugadores animada */}
                 <View style={{ height: 400 }}>
@@ -81,11 +127,11 @@ const HistoryPage = () => {
                 </View>
             </View>
 
-            <View style={{ gap: 16 }}>
+            <View style={{ gap: 16, marginBottom: 20 }}>
                 <Text style={{ color: colors.grey[300], textAlign: 'center' }} >ID: {currentOldGame?.id}</Text>
                 <CustomButton title="Volver" onPress={() => router.back()} bgColor={colors.blue[500]} />
             </View>
-        </View>
+        </ScrollView>
     );
 };
 
@@ -176,6 +222,18 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         color: "#333333",
     },
+    winnerText: {
+        fontSize: 24,
+        fontWeight: "bold",
+        color: "gold",
+    },
+    littleStar: {
+        width: 30,
+        height: 30,
+        resizeMode: 'contain', // Asegura que la imagen se ajuste dentro del cuadro
+        marginHorizontal: 5, // Añade espacio entre las estrellas y el texto
+    }
+
 });
 
 export default HistoryPage;

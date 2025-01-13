@@ -1,12 +1,24 @@
-import { FC, useEffect, useReducer } from 'react';
+import { FC, useEffect, useReducer, useRef, useState } from 'react';
 import { AppContext, appReducer } from './';
-import { FinishMode, Game, Player } from '@/interfaces/game';
+import { FinishMode, Game, Player, PlayerStatus } from '@/interfaces/game';
 import { Storage } from '@/utils/AsyncStorage';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
+import { Dimensions } from 'react-native';
+import LottieView from 'lottie-react-native';
+import { FinishModeStrategy } from '@/interfaces/FinishModeStrategy';
+import { FirstToLoseStrategy } from '@/models/FirstToLoseStrategy';
+import { LastToWinStrategy } from '@/models/LastToWinStrategy';
+import { WinnerModal } from '@/components/WinnerModal';
+import { formatDate } from '@/utils/formatDate';
+import { router } from 'expo-router';
 
-// TODO: terminar la partida automaticamente cuando se llegue al limite de puntos definido y mostrar un mensaje de felicitaciones al ganador (agregar animacion de confeti).
+const { width, height } = Dimensions.get('window');
 
+// TODO: Al terminar el juego por el modo elegido, se muestra un modal con el ganador y una animación de confeti. Ademas se agrega un boton de 'Terminar partida' y se vuelve al home.
+// TODO: En el historial de una partida, se muestran el listado de *todos* los jugadores en orden ascendente de puntaje, y se muestra el ganador de la partida arriba del listado.
+
+// TODO: Al terminar una partida anticipadamente tambien debe mostrarse quien es el ganador y guardarse esa informacio en el estado de la app.
 
 export interface AppState {
     currentGame?: Game;
@@ -16,6 +28,20 @@ export interface AppState {
 }
 
 const App_INITIAL_STATE: AppState = {
+    currentGame: {
+        id: uuidv4(),
+        name: "Partida",
+        scoreLimit: 100,
+        players: [
+            { id: 1, name: "Jugador 1", score: 99, status: PlayerStatus.PLAYING },
+            { id: 2, name: "Jugador 2", score: 10, status: PlayerStatus.PLAYING },
+            { id: 3, name: "Jugador 3", score: 20, status: PlayerStatus.PLAYING },
+            { id: 4, name: "Jugador 4", score: 30, status: PlayerStatus.PLAYING },
+            { id: 5, name: "Jugador 5", score: 40, status: PlayerStatus.PLAYING },
+        ],
+        date: formatDate(new Date()),
+        finishMode: FinishMode.FIRST_TO_LOSE,
+    },
     games: [],
     loading: true
 }
@@ -46,7 +72,6 @@ export const AppProvider: FC<AppProviderProps> = ({ children }) => {
         dispatch({ type: "REMOVE_PLAYER", payload: playerId });
     }
 
-
     const selectOldGame = (id: string) => {
         const game = state.games.find(g => g.id === id);
         if (!game) return;
@@ -61,13 +86,58 @@ export const AppProvider: FC<AppProviderProps> = ({ children }) => {
     useEffect(() => {
         Storage.getItem("games").then((games) => {
             const parsedGames = games as Game[];
-            console.log({ parsedGames })
 
-            if (parsedGames.length) {
-                dispatch({ type: "SET_GAMES", payload: parsedGames });
-            }
+            if (parsedGames.length) dispatch({ type: "SET_GAMES", payload: parsedGames });
         });
     }, []);
+
+    const getFinishModeStrategy = (finishMode: FinishMode): FinishModeStrategy => {
+        switch (finishMode) {
+            case FinishMode.FIRST_TO_LOSE:
+                return new FirstToLoseStrategy();
+            case FinishMode.LAST_TO_WIN:
+                return new LastToWinStrategy();
+            default:
+                throw new Error('Unsupported finish mode');
+        }
+    };
+
+    const finishRound = (game: Game) => {
+        if (!game) return;
+
+        const { players, scoreLimit, finishMode } = game;
+        const strategy = getFinishModeStrategy(finishMode);
+
+        const winner = strategy.checkWinner(players, scoreLimit);
+        if (winner) {
+            console.log('Winner:', winner);
+            const processedGame = strategy.processRound(game);
+            dispatch({ type: "UPDATE_CURRENT_GAME", payload: processedGame });
+            // dispatch({ type: "SET_WINNER", payload: winner });
+            showWinner(winner);
+        } else {
+            const processedGame = strategy.processRound(game);
+            dispatch({ type: "UPDATE_CURRENT_GAME", payload: processedGame });
+        }
+    };
+
+    const animationRef = useRef<LottieView>(null);
+
+    const showWinner = (winner: Player) => {
+        setWinner(winner);
+
+        if (animationRef.current) {
+            animationRef.current.play();
+        }
+
+        // setTimeout(() => {
+        //     if (animationRef.current) {
+        //         animationRef.current.play();
+        //     }
+        // }, 1000);
+    };
+
+    const [winner, setWinner] = useState<Player | null>(null);
 
     return (
         <AppContext.Provider value={{
@@ -78,7 +148,35 @@ export const AppProvider: FC<AppProviderProps> = ({ children }) => {
             selectOldGame,
             endGame,
             removePlayer,
+            finishRound,
         }}>
+
+            <WinnerModal
+                winner={winner}
+                visible={winner !== null}
+                onClose={() => {
+                    setWinner(null);
+                    endGame();
+                    router.push('/(tabs)');
+                    // if (animationRef.current) {
+                    //     animationRef.current.reset();
+                    // }
+                }}
+            />
+
+            <LottieView
+                ref={animationRef}
+                source={require('@/assets/confeti.json')}
+                autoPlay={false}
+                loop={false}
+                style={{
+                    width: width * 2, // Escala horizontalmente
+                    height: height * 2, // Escala verticalmente
+                    position: 'absolute',
+                    zIndex: 0, // Asegura que la animación esté detrás del botón
+                    transform: [{ scale: 1.2 }], // Escala la animación
+                }}
+            />
             {children}
         </AppContext.Provider>
     )

@@ -3,6 +3,7 @@ import { Alert } from "react-native";
 import { AppContext } from "@/context";
 import { router } from "expo-router";
 
+
 export const usePartida = () => {
     const { currentGame, endGame, removePlayer } = useContext(AppContext);
     const [modalVisible, setModalVisible] = useState(false);
@@ -31,12 +32,8 @@ export const usePartida = () => {
         return totalScore / players.length;
     };
 
-    const finishRound = () => {
+    const nextRound = () => {
         setModalVisible(true);
-    };
-
-    const removeJugador = (playerId: number) => {
-        removePlayer(playerId);
     };
 
     const handlePlayerPress = (playerId: number) => {
@@ -51,16 +48,12 @@ export const usePartida = () => {
                 {
                     text: "Eliminar",
                     style: "destructive",
-                    onPress: () => removeJugador(playerId),
+                    onPress: () => removePlayer(playerId)
                 },
             ]
         );
     };
 
-    const finalizarPartida = () => {
-        endGame();
-        router.push("/(tabs)");
-    };
 
     const handleFinalizarPartida = () => {
         Alert.alert(
@@ -74,7 +67,10 @@ export const usePartida = () => {
                 {
                     text: "Finalizar",
                     style: "destructive",
-                    onPress: finalizarPartida,
+                    onPress: () => {
+                        endGame();
+                        router.push("/(tabs)");
+                    },
                 },
             ]
         );
@@ -87,9 +83,8 @@ export const usePartida = () => {
         setModalVisible,
         getColor,
         getAverage,
-        finishRound,
+        nextRound,
         handlePlayerPress,
         handleFinalizarPartida,
-        removeJugador,
     };
 };

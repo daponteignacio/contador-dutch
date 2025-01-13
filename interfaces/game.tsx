@@ -1,11 +1,22 @@
 
+export enum PlayerStatus {
+    PLAYING = 'playing',
+    WINNER = 'winner',
+    LOSER = 'loser'
+}
+
 export interface Player {
     id: number;
     name: string;
     score: number;
+    status: PlayerStatus;
 }
 
-export type FinishMode = 'first-to-lose' | 'last-to-win';
+
+export enum FinishMode {
+    FIRST_TO_LOSE = 'first-to-lose',
+    LAST_TO_WIN = 'last-to-win'
+}
 
 export interface Game {
     id: string;
@@ -14,4 +25,5 @@ export interface Game {
     finishMode: FinishMode;
     date: string;
     players: Player[];
+    winner?: Player;
 }

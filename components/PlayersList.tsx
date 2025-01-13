@@ -43,9 +43,7 @@ export const PlayersList = ({
                         {jugador.name}
                     </Text>
                     <TouchableOpacity
-                        onPress={() => {
-                            setJugadores(jugadores.filter((j) => j.id !== jugador.id));
-                        }}
+                        onPress={() => setJugadores(jugadores.filter((j) => j.id !== jugador.id))}
                         style={styles.deleteButton}
                     >
                         <Entypo name="trash" size={20} color={colors.white} />

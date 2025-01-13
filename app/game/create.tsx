@@ -8,20 +8,10 @@ import { useState } from "react";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { ScrollView } from "react-native";
+import { FinishMode, Player } from "@/interfaces/game";
 
 const CreatePage = () => {
-    const {
-        form,
-        jugadores,
-        jugadorName,
-        finishMode,
-        addJugador,
-        handleCreateGame,
-        setForm,
-        setJugadores,
-        setJugadorName,
-        setFinishMode
-    } = useCreate();
+    const { state, setState, addJugador, handleCreateGame } = useCreate();
 
     const colorScheme = useColorScheme();
     const isDarkMode = colorScheme === "dark";
@@ -73,13 +63,8 @@ const CreatePage = () => {
                             ]}
                             placeholder="Ingrese un nombre"
                             placeholderTextColor={isDarkMode ? colors.grey["600"] : colors.grey["200"]}
-                            value={form.nombre}
-                            onChangeText={(text) =>
-                                setForm({
-                                    ...form,
-                                    nombre: text,
-                                })
-                            }
+                            value={state.gameName}
+                            onChangeText={(text) => setState(prev => ({ ...prev, gameName: text }))}
                         />
                     </View>
 
@@ -103,9 +88,9 @@ const CreatePage = () => {
                             ]}
                             placeholder="200"
                             placeholderTextColor={isDarkMode ? colors.grey["600"] : colors.grey["200"]}
-                            value={form.limite.toString()}
+                            value={state.scoreLimit.toString()}
                             keyboardType="number-pad"
-                            onChangeText={(text) => setForm({ ...form, limite: text })}
+                            onChangeText={(text) => setState(prev => ({ ...prev, scoreLimit: text }))}
                         />
                     </View>
                 </View>
@@ -133,7 +118,7 @@ const CreatePage = () => {
                         selectedIndex={selectedIndex}
                         onChange={(event) => {
                             setSelectedIndex(event.nativeEvent.selectedSegmentIndex);
-                            setFinishMode(event.nativeEvent.selectedSegmentIndex === 0 ? "first-to-lose" : "last-to-win");
+                            setState(prev => ({ ...prev, finishMode: event.nativeEvent.selectedSegmentIndex === 0 ? FinishMode.FIRST_TO_LOSE : FinishMode.LAST_TO_WIN }));
                         }}
                     />
                 </View>
@@ -169,17 +154,17 @@ const CreatePage = () => {
                                 ]}
                                 placeholder="Nombre del jugador"
                                 placeholderTextColor={isDarkMode ? colors.grey["600"] : colors.grey["200"]}
-                                value={jugadorName}
-                                onChangeText={(text) => setJugadorName(text)}
+                                value={state.currentPlayerName}
+                                onChangeText={(text) => setState(prev => ({ ...prev, currentPlayerName: text }))}
                             />
                             <TouchableOpacity
-                                disabled={jugadorName.trim() === ""}
+                                disabled={state.currentPlayerName.trim() === ""}
                                 onPress={() => {
-                                    addJugador(jugadorName);
-                                    setJugadorName("");
+                                    addJugador(state.currentPlayerName);
+                                    setState(prev => ({ ...prev, currentPlayerName: "" }));
                                 }}
                                 style={{
-                                    backgroundColor: jugadorName.trim() === ""
+                                    backgroundColor: state.currentPlayerName.trim() === ""
                                         ? colors.grey["500"]
                                         : colors.blue["700"],
                                     padding: 10,
@@ -192,7 +177,7 @@ const CreatePage = () => {
                     </View>
                 </View>
 
-                <PlayersList jugadores={jugadores} setJugadores={setJugadores} />
+                <PlayersList jugadores={state.players} setJugadores={((players: Player[]) => setState(prev => ({ ...prev, players })))} />
             </View>
 
             <View style={{ alignItems: "center", width: "100%" }}>

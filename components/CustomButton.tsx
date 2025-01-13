@@ -1,6 +1,7 @@
-import { colors } from "@/styles/colors";
-import { StyleSheet, Text, TouchableOpacity, StyleProp, ViewStyle, TextStyle, View, useColorScheme } from "react-native";
 import { ReactNode } from "react";
+import { StyleSheet, Text, TouchableOpacity, StyleProp, ViewStyle, TextStyle, View, useColorScheme } from "react-native";
+import * as Haptics from "expo-haptics";
+import { colors } from "@/styles/colors";
 
 // TODO: Agregar respuestas hapitcas al interactuar con botones
 
@@ -75,7 +76,10 @@ export const CustomButton = ({
         <TouchableOpacity
             disabled={disabled}
             style={styles.container}
-            onPress={onPress}
+            onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                onPress()
+            }}
         >
             {icon && <View>{icon}</View>}
             {title && <Text style={styles.text}>{title}</Text>}

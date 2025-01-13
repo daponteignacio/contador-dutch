@@ -66,7 +66,8 @@ export const FinishRoundModal = ({
     modalVisible,
     setModalVisible,
 }: FinishRoundModalProps) => {
-    const { currentGame, updateCurrentGame } = useContext(AppContext);
+    const { currentGame, finishRound } = useContext(AppContext);
+
     const [currentGameCopy, setCurrentGameCopy] = useState<Game>({ ...currentGame! });
     const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
     const players = currentGameCopy?.players || [];
@@ -96,6 +97,7 @@ export const FinishRoundModal = ({
             setError('No puedes ingresar números negativos');
             return;
         }
+
         setCurrentGameCopy((prev) => ({
             ...prev,
             players: prev.players?.map((player) =>
@@ -107,11 +109,8 @@ export const FinishRoundModal = ({
     };
 
     const handleNextPlayer = () => {
-        if (currentPlayerIndex === players.length - 1) {
-            setCurrentPlayerIndex(0);
-        } else {
-            setCurrentPlayerIndex((prev) => prev + 1);
-        }
+        if (currentPlayerIndex === players.length - 1) return
+        setCurrentPlayerIndex((prev) => prev + 1);
     };
 
     const handlePreviousPlayer = () => {
@@ -124,8 +123,8 @@ export const FinishRoundModal = ({
         setModalVisible(false);
     };
 
-    const finishRound = () => {
-        updateCurrentGame(currentGameCopy);
+    const finishRoundAndCloseModal = () => {
+        finishRound(currentGameCopy);
         closeModal();
     };
 
@@ -191,7 +190,7 @@ export const FinishRoundModal = ({
                             {currentPlayerIndex === players.length - 1 ? (
                                 <TouchableOpacity
                                     style={{ ...styles.bottomModalButton, backgroundColor: colors.blue[500] }}
-                                    onPress={finishRound}
+                                    onPress={finishRoundAndCloseModal}
                                 >
                                     <Text style={{ textAlign: 'center', fontWeight: 'bold', color: 'white' }}>
                                         Finalizar

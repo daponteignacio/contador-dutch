@@ -1,28 +1,27 @@
 import { useState, useContext } from "react";
 import { Alert } from "react-native";
-import { FinishMode, Player } from "@/interfaces/game";
+import { FinishMode, Player, PlayerStatus } from "@/interfaces/game";
 import { AppContext } from "@/context";
 import { router } from "expo-router";
 
 export const useCreate = () => {
     const { newGame } = useContext(AppContext);
 
-    const [form, setForm] = useState({
-        nombre: "",
-        limite: "",
+    const [state, setState] = useState({
+        gameName: "",
+        scoreLimit: "",
+        errorMsg: "",
+        currentPlayerName: "",
+        players: [] as Player[],
+        finishMode: FinishMode.FIRST_TO_LOSE,
     });
 
-    const [error, setError] = useState("");
-    const [jugadorName, setJugadorName] = useState("");
-    const [jugadores, setJugadores] = useState<Player[]>([]);
-    const [finishMode, setFinishMode] = useState<FinishMode>("first-to-lose");
-
     const handleError = (message: string) => {
-        setError(message);
+        setState({ ...state, errorMsg: message });
         Alert.alert("Error", message, [
             {
                 text: "Aceptar",
-                onPress: () => setError(""),
+                onPress: () => setState({ ...state, errorMsg: "" }),
             },
         ]);
     };
@@ -31,48 +30,43 @@ export const useCreate = () => {
         if (name.trim() === "") return;
 
         const newJugador: Player = {
-            id: jugadores.length + 1,
+            id: state.players.length + 1,
             name,
             score: 0,
+            status: PlayerStatus.PLAYING,
         };
 
-        setJugadores([newJugador, ...jugadores]);
+        // setJugadores([newJugador, ...jugadores]);
+        setState({ ...state, players: [newJugador, ...state.players] });
     };
 
     const handleCreateGame = () => {
-        const parsedNumber = parseInt(form.limite);
+        const scoreLimit = parseInt(state.scoreLimit);
 
-        if (isNaN(parsedNumber)) {
+        if (isNaN(scoreLimit)) {
             handleError("El límite de puntos debe ser un número entero");
             return;
         }
 
-        if (parsedNumber < 0) {
+        if (scoreLimit < 0) {
             handleError("El límite de puntos debe ser mayor a 0");
             return;
         }
 
-        if (jugadores.length < 2) {
+        if (state.players.length < 2) {
             handleError("Debe haber al menos 2 jugadores para iniciar la partida");
             return;
         }
 
-        setError("");
-        newGame(form.nombre, parsedNumber, jugadores, finishMode);
+        setState({ ...state, errorMsg: "" });
+        newGame(state.gameName, scoreLimit, state.players, state.finishMode);
         router.replace("/(tabs)/partida");
     };
 
     return {
-        error,
-        form,
-        jugadores,
-        jugadorName,
-        finishMode,
+        state,
         addJugador,
         handleCreateGame,
-        setFinishMode,
-        setForm,
-        setJugadores,
-        setJugadorName,
+        setState,
     };
 };

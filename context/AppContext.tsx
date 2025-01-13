@@ -13,6 +13,7 @@ interface ContextProps {
     selectOldGame: (id: string) => void;
     endGame: () => void;
     removePlayer: (playerId: number) => void;
+    finishRound: (game: Game) => void;
 }
 
 
