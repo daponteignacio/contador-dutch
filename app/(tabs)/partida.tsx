@@ -8,9 +8,6 @@ import { usePartida } from "@/hooks/usePartida";
 import { router } from "expo-router";
 
 // TODO: Revisar bug que al volver de la vista de creación de partida se sigue mostrando la flecha del stack navigator siendo que estoy en un tab navigator
-// TODO: En la vista de partida debe verificarse si hay una partida en curso, caso contrario se muestra un cartel diciendo que cree una.
-// TODO: implementar eliminación de jugador
-// TODO: implementar modal de siguiente ronda
 
 const PartidaScreen = () => {
 
@@ -20,8 +17,7 @@ const PartidaScreen = () => {
     modalVisible,
     setModalVisible,
     getColor,
-    getAverage,
-    finishRound,
+    nextRound,
     handlePlayerPress,
     handleFinalizarPartida,
   } = usePartida();
@@ -31,12 +27,9 @@ const PartidaScreen = () => {
 
   const dynamicBackgroundColor = isDarkMode ? colors.grey["950"] : colors.grey["50"];
   const dynamicTextColor = isDarkMode ? colors.grey["200"] : colors.grey["900"];
-  const dynamicSubTextColor = isDarkMode ? colors.grey["400"] : colors.grey["600"];
   const dynamicDetailsCardColor = isDarkMode ? colors.grey[900] : colors.white;
   const dynamicGameCardLabelColor = isDarkMode ? colors.grey[300] : colors.grey[600];
-  const dynamicGameCardValueColor = isDarkMode ? colors.white : colors.white;
-  const dynamicPlayerCardBackgroundColor = isDarkMode ? colors.grey["800"] : colors.grey["100"];
-  const dynamicPlayerCardTextColor = isDarkMode ? colors.grey["200"] : colors.grey["900"];
+  const dynamicGameCardValueColor = isDarkMode ? colors.white : colors.black;
 
   if (!currentGame) {
     return (
@@ -144,7 +137,7 @@ const PartidaScreen = () => {
         })}
       </ScrollView>
 
-      <CustomButton title="Siguiente ronda" onPress={finishRound} bgColor={colors.blue["500"]} variant="outline" />
+      <CustomButton title="Siguiente ronda" onPress={nextRound} bgColor={colors.blue["500"]} variant="outline" />
       <CustomButton title="Finalizar partida" onPress={handleFinalizarPartida} bgColor={colors.red["500"]} />
     </View>
   );
