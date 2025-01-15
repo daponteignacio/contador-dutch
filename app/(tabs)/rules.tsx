@@ -71,9 +71,33 @@ const RulesScreen = () => {
             <Text style={[styles.bulletPoint, { color: dynamicTextColor }]}>
                 - El comodín puede valer el número que el jugador decida, pero debe anunciarlo en voz alta. Puede ser especialmente útil para hacer "espejito", incluso fuera de su turno.
             </Text>
+
+
+            <View style={styles.sectionHeader}>
+                <MaterialCommunityIcons name="flag" size={24} color={dynamicIconColor} />
+                <Text style={[styles.sectionTitle, { color: dynamicTextColor }]}>
+                    Fin de una ronda
+                </Text>
+            </View>
+
             <Text style={[styles.text, { color: dynamicTextColor }]}>
-                - El juego también puede terminar si un jugador se queda sin cartas, además de cuando otro jugador alcanza el límite de puntos definido.
+                - La ronda termina cuando un jugador, en su turno, tira una carta boca abajo con valor 5 o menos, aunque también puede terminar si un jugador se queda sin cartas.
             </Text>
+
+
+            <View style={styles.sectionHeader}>
+                <MaterialCommunityIcons name="flag-checkered" size={24} color={dynamicIconColor} />
+                <Text style={[styles.sectionTitle, { color: dynamicTextColor }]}>
+                    Fin del juego
+                </Text>
+            </View>
+
+            <Text style={[styles.text, { color: dynamicTextColor }]}>
+                - El juego puede terminar segun la modalidad elegida: "Primero en perder" o "Primero en ganar".{"\n"}{"\n"}
+                - En "Primero en perder", el juego termina con el primer jugador en alcanzar el límite de puntos establecido.{"\n"}{"\n"}
+                - En "Primero en ganar", el juego termina cuando queda un solo jugador en pie sin haber alcanzado el límite de puntos.
+            </Text>
+
 
             {/* Cartas Especiales */}
             <View style={styles.sectionHeader}>
@@ -120,6 +144,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         marginBottom: 10,
+        marginTop: 15,
     },
     sectionTitle: {
         fontSize: 18,

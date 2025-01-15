@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, useColorScheme } from "react-native";
-import Animated, { SlideInLeft } from "react-native-reanimated";
+import Animated, { SlideInLeft, SlideInRight, SlideOutRight } from "react-native-reanimated";
 import CustomButton from "@/components/CustomButton";
 import { colors } from "@/styles/colors";
 import { useHome } from "@/hooks/useHome";
@@ -8,7 +8,7 @@ import { useHome } from "@/hooks/useHome";
 const HomeScreen = () => {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
-  const { currentGame, games, handleNewGame, router } = useHome();
+  const { currentGame, games, handleNewGame, handleDeleteOldGame, router } = useHome();
 
   if (!games.length && !currentGame) {
     return (
@@ -58,6 +58,7 @@ const HomeScreen = () => {
           <Animated.View
             key={game.id}
             entering={SlideInLeft.duration(500).delay(index * 200)}
+            exiting={SlideOutRight.duration(500).delay(index * 200)}
             style={[
               styles.gameCard,
               { backgroundColor: isDarkMode ? colors.grey["800"] : colors.grey["100"] },
@@ -66,6 +67,7 @@ const HomeScreen = () => {
             <TouchableOpacity
               style={styles.touchableCard}
               onPress={() => router.push(`/game/${game.id}`)}
+              onLongPress={() => handleDeleteOldGame(game.id)}
             >
               <Text style={[styles.gameDate, { color: isDarkMode ? colors.grey["200"] : colors.grey["900"] }]}>
                 {game.date}

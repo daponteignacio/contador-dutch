@@ -1,4 +1,4 @@
-import { FinishMode, Game, Player } from "@/interfaces/game";
+import { FinishMode, Game, Player, PlayerStatus } from "@/interfaces/game";
 import { AppState } from "./AppProvider";
 import { formatDate } from "@/utils/formatDate";
 
@@ -10,7 +10,8 @@ export type AppAction =
     { type: 'SELECT_OLD_GAME', payload: Game } |
     { type: 'SET_GAMES', payload: Game[] } |
     { type: 'SET_WINNER', payload: Player } |
-    { type: 'UPDATE_CURRENT_GAME', payload: Game }
+    { type: 'UPDATE_CURRENT_GAME', payload: Game } |
+    { type: 'DELETE_OLD_GAME', payload: string };
 
 export const appReducer = (state: AppState, action: AppAction): AppState => {
     switch (action.type) {
@@ -19,7 +20,6 @@ export const appReducer = (state: AppState, action: AppAction): AppState => {
                 ...state,
                 currentGame: {
                     ...state.currentGame!,
-                    losers: [...state.currentGame!.losers ?? [], ...action.payload],
                     players: state.currentGame!.players.filter(p => !action.payload.some(l => l.id === p.id))
                 }
             };
@@ -46,7 +46,7 @@ export const appReducer = (state: AppState, action: AppAction): AppState => {
                 ...state,
                 currentGame: {
                     ...state.currentGame!,
-                    players: state.currentGame!.players.filter(p => p.id !== action.payload)
+                    players: state.currentGame!.players.map(p => p.id === action.payload ? { ...p, status: PlayerStatus.GONE } : p)
                 }
             };
         case 'SELECT_OLD_GAME':
@@ -71,6 +71,11 @@ export const appReducer = (state: AppState, action: AppAction): AppState => {
             return {
                 ...state,
                 currentGame: action.payload
+            };
+        case 'DELETE_OLD_GAME':
+            return {
+                ...state,
+                games: state.games.filter(g => g.id !== action.payload)
             };
         default:
             return state;

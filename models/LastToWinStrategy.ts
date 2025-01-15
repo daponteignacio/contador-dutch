@@ -3,9 +3,11 @@ import { Game, Player, PlayerStatus } from "@/interfaces/game";
 
 export class LastToWinStrategy implements FinishModeStrategy {
     checkWinner(players: Player[], scoreLimit: number): Player | undefined {
-        const remainingPlayers = players.filter(player => player.score < scoreLimit);
+        const remainingPlayers = players.filter(player => player.status === PlayerStatus.PLAYING);
+        console.log({ remainingPlayers });
         if (remainingPlayers.length === 1) {
-            return remainingPlayers[0]; // Último jugador que no superó el límite
+            remainingPlayers[0].status = PlayerStatus.WINNER;
+            return remainingPlayers[0];
         }
         return undefined;
     }

@@ -2,13 +2,20 @@ import { useState, useContext } from "react";
 import { Alert } from "react-native";
 import { AppContext } from "@/context";
 import { router } from "expo-router";
+import { PlayerStatus } from "@/interfaces/game";
 
 
 export const usePartida = () => {
     const { currentGame, endGame, removePlayer } = useContext(AppContext);
     const [modalVisible, setModalVisible] = useState(false);
 
-    const players = (currentGame?.players || []).sort((a, b) => a.score - b.score);
+    const players = currentGame?.players.filter((player) => player.status === PlayerStatus.PLAYING) || [];
+    const losers = currentGame?.players.filter((player) => [PlayerStatus.LOSER, PlayerStatus.GONE].includes(player.status)) || [];
+
+    const playersSorted = players.sort((a, b) => a.score - b.score);
+    const losersSorted = losers.sort((a, b) => a.score - b.score);
+
+    const avg = players.reduce((acc, player) => acc + player.score, 0) / players.length;
 
     const getColor = (index: number) => {
         if (players.every((player) => player.score === players[0].score)) {
@@ -27,10 +34,6 @@ export const usePartida = () => {
         }
     };
 
-    const getAverage = () => {
-        const totalScore = players.reduce((acc, player) => acc + player.score, 0);
-        return totalScore / players.length;
-    };
 
     const nextRound = () => {
         setModalVisible(true);
@@ -77,14 +80,15 @@ export const usePartida = () => {
     };
 
     return {
+        avg,
         currentGame,
-        players,
+        losersSorted,
         modalVisible,
-        setModalVisible,
+        playersSorted,
         getColor,
-        getAverage,
-        nextRound,
-        handlePlayerPress,
         handleFinalizarPartida,
+        handlePlayerPress,
+        nextRound,
+        setModalVisible,
     };
 };

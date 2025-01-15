@@ -35,9 +35,9 @@ export const WinnerModal = ({ winner, visible, onClose }: { winner?: Player; vis
                     <Text style={styles.title}>¡Felicitaciones!</Text>
                     {winner && <Text style={styles.winnerText}>{winner.name} ha ganado el juego 🎉</Text>}
                     <CustomButton title="Terminar" onPress={() => {
-                        // if (animationRef.current) {
-                        //     animationRef.current.reset();
-                        // }
+                        if (animationRef.current) {
+                            animationRef.current.reset();
+                        }
                         onClose();
                     }} />
                 </View>
@@ -52,6 +52,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        zIndex: 1,
     },
     modalContent: {
         width: '80%',

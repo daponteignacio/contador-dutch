@@ -5,7 +5,7 @@ import { AppContext } from "@/context";
 
 export const useHome = () => {
     const router = useRouter();
-    const { currentGame, games } = useContext(AppContext);
+    const { currentGame, games, deleteOldGame } = useContext(AppContext);
 
     const handleNewGame = () => {
         if (currentGame) {
@@ -26,10 +26,29 @@ export const useHome = () => {
         router.push("/game/create");
     };
 
+
+    const handleClearGames = (gameId: string) => {
+        deleteOldGame(gameId);
+    };
+
+    const handleDeleteOldGame = (gameId: string) => {
+        Alert.alert("Atención", "¿Estás seguro que querés eliminar esta partida?", [
+            {
+                text: "Cancelar",
+                style: "cancel",
+            },
+            {
+                text: "Eliminar",
+                onPress: () => handleClearGames(gameId),
+            },
+        ]);
+    }
+
     return {
         currentGame,
         games,
-        handleNewGame,
         router,
+        handleDeleteOldGame,
+        handleNewGame,
     };
 };

@@ -4,9 +4,11 @@ import { router } from "expo-router";
 import Animated, { BounceIn, SlideInLeft } from "react-native-reanimated";
 import CustomButton from "@/components/CustomButton";
 import { colors } from "@/styles/colors";
-import { FinishMode, Player } from "@/interfaces/game";
+import { FinishMode, Player, PlayerStatus } from "@/interfaces/game";
 import { useContext, useEffect } from "react";
 import { AppContext } from "@/context";
+import { OldGameDetails } from "@/components/OldGameDetails";
+import { UIContext } from "@/context/ui";
 
 const HistoryPage = () => {
     const { oldGameId } = useLocalSearchParams();
@@ -19,62 +21,27 @@ const HistoryPage = () => {
     }, [oldGameId]);
 
 
-    const playersSorted = currentOldGame?.players.sort((a, b) => a.score - b.score) || [];
-    const winner = playersSorted[0];
+    const playersSorted =
+        (currentOldGame?.players.sort((a, b) => a.score - b.score) || [])
+            .filter(player => player.status !== PlayerStatus.GONE);
 
+    const playersGone = currentOldGame?.players.filter(player => player.status === PlayerStatus.GONE);
 
-    const colorScheme = useColorScheme(); // Detecta el esquema de color
-    const isDarkMode = colorScheme === "dark"; // Verifica si está en modo oscuro
-
-    const dynamicBackgroundColor = isDarkMode ? colors.grey["950"] : colors.grey["50"];
-    const dynamicTextColor = isDarkMode ? colors.grey["200"] : colors.grey["900"];
-    const dynamicSubTextColor = isDarkMode ? colors.grey["400"] : colors.grey["600"];
-    const dynamicDetailsCardColor = isDarkMode ? colors.grey[900] : colors.white;
-    const dynamicGameCardLabelColor = isDarkMode ? colors.grey[300] : colors.grey[600];
-    const dynamicGameCardValueColor = isDarkMode ? colors.white : colors.white;
-    const dynamicPlayerCardBackgroundColor = isDarkMode ? colors.grey["800"] : colors.grey["100"];
-    const dynamicPlayerCardTextColor = isDarkMode ? colors.grey["200"] : colors.grey["900"];
+    const winner = playersSorted.find(player => player.status === PlayerStatus.WINNER);
 
     if (!oldGameId) return;
 
-    const getModoFinalizacion = (finishMode?: FinishMode) => {
-        if (!finishMode) return "Desconocido";
-
-        switch (finishMode) {
-            case FinishMode.LAST_TO_WIN:
-                return "Último en ganar";
-            case FinishMode.FIRST_TO_LOSE:
-                return "Primero en perder";
-            default:
-                return "Desconocido";
-        }
-    }
+    const {
+        dynamicBackgroundColor,
+        dynamicTextColor,
+        dynamicCardBackgroundColor,
+        dynamicCardTextColor,
+    } = useContext(UIContext);
 
     return (
         <ScrollView style={[styles.container, { backgroundColor: dynamicBackgroundColor }]}>
             <View style={{ flex: 1 }}>
-                <View style={[styles.card, { backgroundColor: dynamicDetailsCardColor, gap: 20 }]}>
-                    <View style={styles.details}>
-                        <View style={styles.detailItem}>
-                            <Text style={[styles.label, { color: dynamicGameCardLabelColor }]}>Partida</Text>
-                            <Text style={[styles.value, { color: dynamicGameCardValueColor }]}>{currentOldGame?.name}</Text>
-                        </View>
-                        <View style={styles.detailItem}>
-                            <Text style={[styles.label, { color: dynamicGameCardLabelColor }]}>Creación</Text>
-                            <Text style={[styles.value, { color: dynamicGameCardValueColor }]}>{currentOldGame?.date} pts</Text>
-                        </View>
-                    </View>
-                    <View style={styles.details}>
-                        <View style={styles.detailItem}>
-                            <Text style={[styles.label, { color: dynamicGameCardLabelColor }]}>Modo de finalización</Text>
-                            <Text style={[styles.value, { color: dynamicGameCardValueColor }]}>{getModoFinalizacion(currentOldGame?.finishMode)}</Text>
-                        </View>
-                        <View style={styles.detailItem}>
-                            <Text style={[styles.label, { color: dynamicGameCardLabelColor }]}>Límite</Text>
-                            <Text style={[styles.value, { color: dynamicGameCardValueColor }]}>{currentOldGame?.scoreLimit} pts</Text>
-                        </View>
-                    </View>
-                </View>
+                <OldGameDetails currentOldGame={currentOldGame!} />
 
                 <Animated.View
                     entering={BounceIn.duration(500).delay(500)}
@@ -82,7 +49,7 @@ const HistoryPage = () => {
                         alignItems: 'center',
                         justifyContent: 'center',
                         marginBottom: 20,
-                        maxWidth: '100%', // Limita el ancho del contenedor
+                        maxWidth: '100%',
                     }}>
                     <Text style={[{ marginBottom: 10, color: dynamicTextColor, textAlign: 'center' }]}>Ganador</Text>
 
@@ -91,39 +58,55 @@ const HistoryPage = () => {
                         justifyContent: 'center',
                         marginBottom: 20,
                         flexDirection: 'row',
-                        maxWidth: '100%', // Limita el ancho del contenedor
-                        overflow: 'hidden', // Oculta cualquier contenido que exceda los límites 
+                        maxWidth: '100%',
+                        overflow: 'hidden',
                     }}>
-
-
                         <Image style={styles.littleStar} source={require('@/assets/star.png')} />
-                        <Text style={[styles.winnerText, { textAlign: 'center', flexShrink: 1 }]}>{winner.name}</Text>
+                        <Text style={[styles.winnerText, { textAlign: 'center', flexShrink: 1 }]}>{winner?.name}</Text>
                         <Image style={styles.littleStar} source={require('@/assets/star.png')} />
                     </View>
 
                 </Animated.View>
 
-                {/* Lista de jugadores animada */}
                 <View style={{ height: 400 }}>
                     <Text style={[styles.headerText, { color: dynamicTextColor }]}>Jugadores ({playersSorted.length})</Text>
 
                     <ScrollView contentContainerStyle={styles.playerList}>
                         {playersSorted.map((player, index) => {
-                            const baseColor = dynamicPlayerCardTextColor;
+                            const baseColor = dynamicCardTextColor;
                             const color = index === 0 ? colors.green[500] : index === playersSorted.length - 1 ? colors.red[500] : baseColor;
 
                             return (
                                 <Animated.View
                                     key={player.id}
                                     entering={SlideInLeft.duration(500).delay(index * 200)}
-                                    style={[styles.playerCard, { backgroundColor: dynamicPlayerCardBackgroundColor }]}
+                                    style={[styles.playerCard, { backgroundColor: dynamicCardBackgroundColor }]}
                                 >
-                                    <Text style={{ ...styles.playerName, color }}>{player.name}</Text>
-                                    <Text style={{ ...styles.playerName, color }}>{player.score}</Text>
+                                    <Text style={{ ...styles.playerName, color }}>{player?.name} {player.status === PlayerStatus.GONE && "(Se fue)"}</Text>
+                                    <Text style={{ ...styles.playerName, color }}>{player?.score}</Text>
                                 </Animated.View>
                             )
                         })}
                     </ScrollView>
+
+                    {playersGone !== undefined && playersGone.length > 0 && <View style={{ height: 1, backgroundColor: dynamicTextColor, marginVertical: 20 }} />}
+
+                    <ScrollView contentContainerStyle={styles.playerList}>
+                        {playersGone?.map((player, index) => {
+                            return (
+                                <Animated.View
+                                    key={player.id}
+                                    entering={SlideInLeft.duration(500).delay(index * 200)}
+                                    style={[styles.playerCard, { backgroundColor: dynamicCardBackgroundColor }]}
+                                >
+                                    <Text style={{ ...styles.playerName, color: dynamicCardTextColor }}>{player?.name} (Se fue)</Text>
+                                    <Text style={{ ...styles.playerName, color: dynamicCardTextColor }}>{player?.score}</Text>
+                                </Animated.View>
+                            )
+                        })}
+                    </ScrollView>
+
+
                 </View>
             </View>
 

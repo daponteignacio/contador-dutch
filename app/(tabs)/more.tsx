@@ -66,6 +66,7 @@ const MoreScreen = () => {
       </View>
 
       {/* Footer */}
+
       <View style={styles.footer}>
         <Text style={[styles.footerText, { color: dynamicFooterColor }]}>
           © {new Date().getFullYear()} Dutch Contador. Todos los derechos reservados.

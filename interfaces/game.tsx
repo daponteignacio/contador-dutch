@@ -2,7 +2,8 @@
 export enum PlayerStatus {
     PLAYING = 'playing',
     WINNER = 'winner',
-    LOSER = 'loser'
+    LOSER = 'loser',
+    GONE = 'gone'
 }
 
 export interface Player {

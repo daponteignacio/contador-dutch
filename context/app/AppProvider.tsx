@@ -1,22 +1,17 @@
 import { FC, useEffect, useReducer, useRef, useState } from 'react';
-import { AppContext, appReducer } from './';
-import { FinishMode, Game, Player, PlayerStatus } from '@/interfaces/game';
-import { Storage } from '@/utils/AsyncStorage';
+import { Dimensions } from 'react-native';
+import { router } from 'expo-router';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
-import { Dimensions } from 'react-native';
 import LottieView from 'lottie-react-native';
-import { FinishModeStrategy } from '@/interfaces/FinishModeStrategy';
-import { FirstToLoseStrategy } from '@/models/FirstToLoseStrategy';
-import { LastToWinStrategy } from '@/models/LastToWinStrategy';
+import { AppContext } from './AppContext';
+import { appReducer } from './appReducer';
+import { FinishModeStrategy, FinishMode, Game, Player, PlayerStatus } from '@/interfaces';
+import { Storage, formatDate } from '@/utils';
+import { LastToWinStrategy, FirstToLoseStrategy } from '@/models';
 import { WinnerModal } from '@/components/WinnerModal';
-import { formatDate } from '@/utils/formatDate';
-import { router } from 'expo-router';
 
 const { width, height } = Dimensions.get('window');
-
-// TODO: Al terminar el juego por el modo elegido, se muestra un modal con el ganador y una animación de confeti. Ademas se agrega un boton de 'Terminar partida' y se vuelve al home.
-// TODO: En el historial de una partida, se muestran el listado de *todos* los jugadores en orden ascendente de puntaje, y se muestra el ganador de la partida arriba del listado.
 
 // TODO: Al terminar una partida anticipadamente tambien debe mostrarse quien es el ganador y guardarse esa informacio en el estado de la app.
 
@@ -28,20 +23,20 @@ export interface AppState {
 }
 
 const App_INITIAL_STATE: AppState = {
-    currentGame: {
-        id: uuidv4(),
-        name: "Partida",
-        scoreLimit: 100,
-        players: [
-            { id: 1, name: "Jugador 1", score: 99, status: PlayerStatus.PLAYING },
-            { id: 2, name: "Jugador 2", score: 10, status: PlayerStatus.PLAYING },
-            { id: 3, name: "Jugador 3", score: 20, status: PlayerStatus.PLAYING },
-            { id: 4, name: "Jugador 4", score: 30, status: PlayerStatus.PLAYING },
-            { id: 5, name: "Jugador 5", score: 40, status: PlayerStatus.PLAYING },
-        ],
-        date: formatDate(new Date()),
-        finishMode: FinishMode.FIRST_TO_LOSE,
-    },
+    // currentGame: {
+    //     id: uuidv4(),
+    //     name: "Partida",
+    //     scoreLimit: 100,
+    //     players: [
+    //         { id: 1, name: "Jugador 1", score: 99, status: PlayerStatus.PLAYING },
+    //         { id: 2, name: "Jugador 2", score: 10, status: PlayerStatus.PLAYING },
+    //         { id: 3, name: "Jugador 3", score: 20, status: PlayerStatus.PLAYING },
+    //         { id: 4, name: "Jugador 4", score: 30, status: PlayerStatus.PLAYING },
+    //         { id: 5, name: "Jugador 5", score: 40, status: PlayerStatus.PLAYING },
+    //     ],
+    //     date: formatDate(new Date()),
+    //     finishMode: FinishMode.FIRST_TO_LOSE,
+    // },
     games: [],
     loading: true
 }
@@ -78,6 +73,10 @@ export const AppProvider: FC<AppProviderProps> = ({ children }) => {
         dispatch({ type: "SELECT_OLD_GAME", payload: game });
     }
 
+    const deleteOldGame = (id: string) => {
+        dispatch({ type: "DELETE_OLD_GAME", payload: id });
+    }
+
     useEffect(() => {
         if (!state.games.length) return;
         Storage.setItem("games", state.games);
@@ -105,19 +104,22 @@ export const AppProvider: FC<AppProviderProps> = ({ children }) => {
     const finishRound = (game: Game) => {
         if (!game) return;
 
-        const { players, scoreLimit, finishMode } = game;
-        const strategy = getFinishModeStrategy(finishMode);
+        const strategy = getFinishModeStrategy(game.finishMode);
 
-        const winner = strategy.checkWinner(players, scoreLimit);
+        console.log('Previous game:');
+        game.players.forEach(player => console.log(player));
+        const processedGame = strategy.processRound(game);
+
+        console.log('Processed game:');
+        processedGame.players.forEach(player => console.log(player));
+
+        dispatch({ type: "UPDATE_CURRENT_GAME", payload: processedGame });
+
+        const winner = strategy.checkWinner(processedGame.players, processedGame.scoreLimit);
+
         if (winner) {
-            console.log('Winner:', winner);
-            const processedGame = strategy.processRound(game);
             dispatch({ type: "UPDATE_CURRENT_GAME", payload: processedGame });
-            // dispatch({ type: "SET_WINNER", payload: winner });
             showWinner(winner);
-        } else {
-            const processedGame = strategy.processRound(game);
-            dispatch({ type: "UPDATE_CURRENT_GAME", payload: processedGame });
         }
     };
 
@@ -129,12 +131,6 @@ export const AppProvider: FC<AppProviderProps> = ({ children }) => {
         if (animationRef.current) {
             animationRef.current.play();
         }
-
-        // setTimeout(() => {
-        //     if (animationRef.current) {
-        //         animationRef.current.play();
-        //     }
-        // }, 1000);
     };
 
     const [winner, setWinner] = useState<Player | null>(null);
@@ -149,10 +145,11 @@ export const AppProvider: FC<AppProviderProps> = ({ children }) => {
             endGame,
             removePlayer,
             finishRound,
+            deleteOldGame,
         }}>
 
             <WinnerModal
-                winner={winner}
+                winner={winner!}
                 visible={winner !== null}
                 onClose={() => {
                     setWinner(null);
