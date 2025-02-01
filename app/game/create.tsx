@@ -1,14 +1,15 @@
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View, useColorScheme } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, useColorScheme } from "react-native";
 import CustomButton from "@/components/CustomButton";
 import { colors } from "@/styles/colors";
 import Entypo from '@expo/vector-icons/Entypo';
 import { PlayersList } from "@/components/PlayersList";
 import { useCreate } from "@/hooks/useCreate";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { ScrollView } from "react-native";
 import { FinishMode, Player } from "@/interfaces/game";
+import { UIContext } from "@/context/ui";
 
 const CreatePage = () => {
     const { state, setState, addJugador, handleCreateGame } = useCreate();
@@ -27,167 +28,180 @@ const CreatePage = () => {
         );
     };
 
+    const {
+        dynamicBackgroundColor,
+        dynamicTextColor,
+        dynamicCardBackgroundColor,
+        dynamicCardTextColor,
+    } = useContext(UIContext);
+
+    const [values, setValues] = useState(['Primero en perder', 'Último en ganar']);
+    const [selectedValue, setSelectedValue] = useState(values[0]);
+
     return (
-        <ScrollView
-            contentContainerStyle={[
-                styles.container,
-                { backgroundColor: isDarkMode ? colors.grey["950"] : colors.grey["50"] },
-            ]}
+        <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            // Ajusta el valor de keyboardVerticalOffset según tu layout (por ejemplo, si usas un header)
+            keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
         >
-            <View style={styles.main}>
-                <View
-                    style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        gap: 10,
-                        marginBottom: 10,
-                    }}
-                >
-                    <View style={styles.inputGroup}>
-                        <Text
-                            style={[
-                                styles.inputLabel,
-                                { color: isDarkMode ? colors.grey["200"] : colors.grey["900"] },
-                            ]}
-                        >
-                            Nombre de la partida
-                        </Text>
-                        <TextInput
-                            style={[
-                                styles.input,
-                                {
-                                    backgroundColor: isDarkMode ? colors.grey["800"] : colors.white,
-                                    color: isDarkMode ? colors.grey["200"] : colors.grey["900"],
-                                    borderColor: isDarkMode ? colors.grey["700"] : colors.grey["300"],
-                                },
-                            ]}
-                            placeholder="Ingrese un nombre"
-                            placeholderTextColor={isDarkMode ? colors.grey["600"] : colors.grey["200"]}
-                            value={state.gameName}
-                            onChangeText={(text) => setState(prev => ({ ...prev, gameName: text }))}
-                        />
-                    </View>
-
-                    <View style={styles.inputGroup}>
-                        <Text
-                            style={[
-                                styles.inputLabel,
-                                { color: isDarkMode ? colors.grey["200"] : colors.grey["900"] },
-                            ]}
-                        >
-                            Límite de puntos
-                        </Text>
-                        <TextInput
-                            style={[
-                                styles.input,
-                                {
-                                    backgroundColor: isDarkMode ? colors.grey["800"] : colors.white,
-                                    color: isDarkMode ? colors.grey["200"] : colors.grey["900"],
-                                    borderColor: isDarkMode ? colors.grey["700"] : colors.grey["300"],
-                                },
-                            ]}
-                            placeholder="200"
-                            placeholderTextColor={isDarkMode ? colors.grey["600"] : colors.grey["200"]}
-                            value={state.scoreLimit.toString()}
-                            keyboardType="number-pad"
-                            onChangeText={(text) => setState(prev => ({ ...prev, scoreLimit: text }))}
-                        />
-                    </View>
-                </View>
-
-
-                <View style={{ gap: 10, justifyContent: 'space-between', width: '100%', marginTop: 10 }}>
-                    <View style={{ flexDirection: "row", gap: 10, width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Text
-                            style={[
-                                styles.inputLabel,
-                                { color: isDarkMode ? colors.grey["200"] : colors.grey["900"] },
-                            ]}
-                        >
-                            Modo de finalización
-                        </Text>
-
-                        <TouchableOpacity onPress={explainModes}>
-                            <AntDesign name="infocirlceo" size={24} color={colors.blue["500"]} />
-                        </TouchableOpacity>
-                    </View>
-
-                    <SegmentedControl
-                        values={['Primero en perder', 'Último en ganar']}
-                        style={{ height: 50 }}
-                        selectedIndex={selectedIndex}
-                        onChange={(event) => {
-                            setSelectedIndex(event.nativeEvent.selectedSegmentIndex);
-                            setState(prev => ({ ...prev, finishMode: event.nativeEvent.selectedSegmentIndex === 0 ? FinishMode.FIRST_TO_LOSE : FinishMode.LAST_TO_WIN }));
+            <ScrollView
+                contentContainerStyle={[
+                    styles.container,
+                    { backgroundColor: dynamicBackgroundColor },
+                ]}
+            >
+                <View style={styles.main}>
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            gap: 10,
+                            marginBottom: 10,
                         }}
-                    />
-                </View>
-
-                <View style={{ marginTop: 20 }}>
-                    <Text
-                        style={[
-                            styles.inputLabel,
-                            { color: isDarkMode ? colors.grey["200"] : colors.grey["900"] },
-                        ]}
                     >
-                        Jugadores
-                    </Text>
-                    <View style={{ gap: 10 }}>
-                        <Text
-                            style={[
-                                { color: isDarkMode ? colors.grey["200"] : colors.grey["900"] },
-                            ]}
-                        >
-                            Ingrese el nombre del jugador
-                        </Text>
-
-                        <View style={styles.inputRow}>
+                        <View style={styles.inputGroup}>
+                            <Text
+                                style={[
+                                    styles.inputLabel,
+                                    { color: dynamicTextColor },
+                                ]}
+                            >
+                                Nombre de la partida
+                            </Text>
                             <TextInput
                                 style={[
                                     styles.input,
                                     {
-                                        flex: 1,
-                                        backgroundColor: isDarkMode ? colors.grey["800"] : colors.white,
-                                        color: isDarkMode ? colors.grey["200"] : colors.grey["900"],
-                                        borderColor: isDarkMode ? colors.grey["700"] : colors.grey["300"],
+                                        backgroundColor: dynamicCardBackgroundColor,
+                                        color: dynamicCardTextColor,
+                                        borderColor: dynamicCardTextColor,
                                     },
                                 ]}
-                                placeholder="Nombre del jugador"
-                                placeholderTextColor={isDarkMode ? colors.grey["600"] : colors.grey["200"]}
-                                value={state.currentPlayerName}
-                                onChangeText={(text) => setState(prev => ({ ...prev, currentPlayerName: text }))}
+                                placeholder="Ingrese un nombre"
+                                placeholderTextColor={colors.grey["200"]}
+                                value={state.gameName}
+                                onChangeText={(text) => setState(prev => ({ ...prev, gameName: text }))}
                             />
-                            <TouchableOpacity
-                                disabled={state.currentPlayerName.trim() === ""}
-                                onPress={() => {
-                                    addJugador(state.currentPlayerName);
-                                    setState(prev => ({ ...prev, currentPlayerName: "" }));
-                                }}
-                                style={{
-                                    backgroundColor: state.currentPlayerName.trim() === ""
-                                        ? colors.grey["500"]
-                                        : colors.blue["700"],
-                                    padding: 10,
-                                    borderRadius: 10,
-                                }}
+                        </View>
+
+                        <View style={styles.inputGroup}>
+                            <Text
+                                style={[
+                                    styles.inputLabel,
+                                    { color: dynamicTextColor },
+                                ]}
                             >
-                                <Entypo name="add-user" size={24} color={colors.white} />
-                            </TouchableOpacity>
+                                Límite de puntos
+                            </Text>
+                            <TextInput
+                                style={[
+                                    styles.input,
+                                    {
+                                        backgroundColor: dynamicCardBackgroundColor,
+                                        color: dynamicCardTextColor,
+                                        borderColor: dynamicCardTextColor,
+                                    },
+                                ]}
+                                placeholder="200"
+                                placeholderTextColor={colors.grey["200"]}
+                                value={state.scoreLimit.toString()}
+                                keyboardType="number-pad"
+                                onChangeText={(text) => setState(prev => ({ ...prev, scoreLimit: text }))}
+                            />
                         </View>
                     </View>
+
+
+                    <View style={{ gap: 10, justifyContent: 'space-between', width: '100%', marginTop: 10 }}>
+                        <View style={{ flexDirection: "row", gap: 10, width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Text
+                                style={[
+                                    styles.inputLabel,
+                                    { color: dynamicTextColor },
+                                ]}
+                            >
+                                Modo de finalización
+                            </Text>
+
+                            <TouchableOpacity onPress={explainModes}>
+                                <AntDesign name="infocirlceo" size={24} color={colors.blue["500"]} />
+                            </TouchableOpacity>
+                        </View>
+
+                        <SegmentedControl
+                            values={values}
+                            style={{ height: 50, backgroundColor: dynamicCardBackgroundColor }}
+                            tintColor={dynamicBackgroundColor}
+                            fontStyle={{ color: dynamicTextColor }}
+                            selectedIndex={selectedIndex}
+                            onChange={(event) => {
+                                setSelectedIndex(event.nativeEvent.selectedSegmentIndex);
+                                setState(prev => ({ ...prev, finishMode: event.nativeEvent.selectedSegmentIndex === 0 ? FinishMode.FIRST_TO_LOSE : FinishMode.LAST_TO_WIN }));
+                            }}
+                        />
+                    </View>
+
+                    <View style={{ marginTop: 20 }}>
+                        <Text
+                            style={[
+                                styles.inputLabel,
+                                { color: dynamicTextColor },
+                            ]}
+                        >
+                            Jugadores
+                        </Text>
+                        <View style={{ gap: 10 }}>
+                            <Text style={{ color: dynamicTextColor }}>Ingrese el nombre del jugador</Text>
+
+                            <View style={styles.inputRow}>
+                                <TextInput
+                                    style={[
+                                        styles.input,
+                                        {
+                                            flex: 1,
+                                            backgroundColor: dynamicCardBackgroundColor,
+                                            color: dynamicCardTextColor,
+                                            borderColor: dynamicCardTextColor,
+                                        },
+                                    ]}
+                                    placeholder="Nombre del jugador"
+                                    placeholderTextColor={colors.grey["200"]}
+                                    value={state.currentPlayerName}
+                                    onChangeText={(text) => setState(prev => ({ ...prev, currentPlayerName: text }))}
+                                />
+                                <TouchableOpacity
+                                    disabled={state.currentPlayerName.trim() === ""}
+                                    onPress={() => {
+                                        addJugador(state.currentPlayerName);
+                                        setState(prev => ({ ...prev, currentPlayerName: "" }));
+                                    }}
+                                    style={{
+                                        backgroundColor: state.currentPlayerName.trim() === ""
+                                            ? colors.grey["500"]
+                                            : colors.blue["700"],
+                                        padding: 10,
+                                        borderRadius: 10,
+                                    }}
+                                >
+                                    <Entypo name="add-user" size={24} color={colors.white} />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+
+                    <PlayersList jugadores={state.players} setJugadores={((players: Player[]) => setState(prev => ({ ...prev, players })))} />
                 </View>
 
-                <PlayersList jugadores={state.players} setJugadores={((players: Player[]) => setState(prev => ({ ...prev, players })))} />
-            </View>
-
-            <View style={{ alignItems: "center", width: "100%" }}>
-                <CustomButton
-                    title="Iniciar Partida"
-                    onPress={handleCreateGame}
-                    bgColor={colors.green["500"]}
-                />
-            </View>
-        </ScrollView>
+                <View style={{ alignItems: "center", width: "100%" }}>
+                    <CustomButton
+                        title="Iniciar Partida"
+                        onPress={handleCreateGame}
+                        bgColor={colors.green["500"]}
+                    />
+                </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 };
 

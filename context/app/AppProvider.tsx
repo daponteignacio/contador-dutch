@@ -123,6 +123,18 @@ export const AppProvider: FC<AppProviderProps> = ({ children }) => {
         }
     };
 
+    const endGameInAdvance = () => {
+        const { currentGame } = state;
+        if (!currentGame) return;
+
+        const winner = currentGame.players.reduce((prev, current) => (prev.score < current.score) ? prev : current);
+        winner.status = PlayerStatus.WINNER;
+
+        showWinner(winner);
+        dispatch({ type: "UPDATE_CURRENT_GAME", payload: { ...currentGame } });
+    }
+
+
     const animationRef = useRef<LottieView>(null);
 
     const showWinner = (winner: Player) => {
@@ -138,7 +150,7 @@ export const AppProvider: FC<AppProviderProps> = ({ children }) => {
     return (
         <AppContext.Provider value={{
             ...state,
-
+            endGameInAdvance,
             newGame,
             updateCurrentGame,
             selectOldGame,
@@ -155,9 +167,6 @@ export const AppProvider: FC<AppProviderProps> = ({ children }) => {
                     setWinner(null);
                     endGame();
                     router.push('/(tabs)');
-                    // if (animationRef.current) {
-                    //     animationRef.current.reset();
-                    // }
                 }}
             />
 

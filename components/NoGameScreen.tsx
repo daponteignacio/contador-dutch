@@ -1,15 +1,16 @@
 import { colors } from '@/styles/colors';
-import React from 'react'
+import React, { useContext } from 'react'
 import { Text, View, StyleSheet, useColorScheme } from 'react-native';
 import CustomButton from './CustomButton';
 import { router } from 'expo-router';
+import { UIContext } from '@/context/ui';
 
 export const NoGameScreen = () => {
-    const colorScheme = useColorScheme();
-    const isDarkMode = colorScheme === "dark";
 
-    const dynamicBackgroundColor = isDarkMode ? colors.grey["950"] : colors.grey["50"];
-    const dynamicTextColor = isDarkMode ? colors.grey["200"] : colors.grey["900"];
+    const {
+        dynamicBackgroundColor,
+        dynamicTextColor,
+    } = useContext(UIContext);
 
     return (
         <View

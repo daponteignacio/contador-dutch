@@ -1,22 +1,24 @@
-import React from "react";
-import { View, Text, StyleSheet, Switch, useColorScheme, Platform } from "react-native";
+import { useContext } from "react";
+import { View, Text, StyleSheet, Switch, Platform } from "react-native";
 import CustomButton from "@/components/CustomButton";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { colors } from "@/styles/colors";
 import { useMore } from "@/hooks/useMore";
+import { UIContext } from "@/context/ui";
+import { globalStyles } from "@/styles/globals";
 
 const MoreScreen = () => {
-  const colorScheme = useColorScheme();
-  const { toggleDarkMode, handleRating, handleEmail } = useMore();
+  const { handleRating, handleEmail } = useMore();
 
-  const isDarkMode = colorScheme === "dark";
-
-  const dynamicBackgroundColor = isDarkMode ? colors.grey["950"] : colors.grey["50"];
-  const dynamicTextColor = isDarkMode ? colors.grey["200"] : colors.grey["900"];
-  const dynamicFooterColor = isDarkMode ? colors.grey["200"] : colors.grey["500"];
+  const {
+    isDarkMode,
+    toggleDarkMode,
+    dynamicBackgroundColor,
+    dynamicTextColor
+  } = useContext(UIContext);
 
   return (
-    <View style={[styles.container, { backgroundColor: dynamicBackgroundColor }]}>
+    <View style={[globalStyles.screenContainer, { backgroundColor: dynamicBackgroundColor }]}>
       {/* Sección de valoración */}
       <View style={styles.section}>
         <Text style={[styles.header, { color: dynamicTextColor }]}>
@@ -68,7 +70,7 @@ const MoreScreen = () => {
       {/* Footer */}
 
       <View style={styles.footer}>
-        <Text style={[styles.footerText, { color: dynamicFooterColor }]}>
+        <Text style={[styles.footerText, { color: dynamicTextColor }]}>
           © {new Date().getFullYear()} Dutch Contador. Todos los derechos reservados.
         </Text>
       </View>

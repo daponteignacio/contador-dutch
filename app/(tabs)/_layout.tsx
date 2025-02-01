@@ -1,14 +1,14 @@
-import React, { useRef, useEffect, useContext, Fragment } from 'react';
-import { View, Animated, Easing, StyleSheet } from 'react-native';
+import { useRef, useEffect, useContext, Fragment } from 'react';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { Tabs, usePathname, useRouter } from "expo-router";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { HapticTab } from "@/components/HapticTab";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { colors } from "@/styles/colors";
 import { AppContext } from "@/context";
+import { FloatingTabBar } from '@/components/FloatingTabBar';
+import { Feather, Ionicons } from "@expo/vector-icons";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -40,6 +40,7 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      // tabBar={props => <FloatingTabBar {...props} />}
       screenOptions={{
         tabBarActiveTintColor: colors.blue[700],
         headerShown: false,
@@ -62,9 +63,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Nuevo juego",
+          title: "Inicio",
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="cards-outline" size={28} color={color} />
+            <Feather name='home' size={24} color={color} />
           ),
         }}
       />
@@ -74,7 +75,7 @@ export default function TabLayout() {
           title: "Partida",
           tabBarIcon: ({ color }) => (
             <View>
-              <MaterialCommunityIcons name="cards" size={28} color={color} />
+              <Ionicons name='game-controller-outline' size={24} color={color} />
               {currentGame && pathname !== '/partida' && (
                 <Fragment>
                   <Animated.View style={{
@@ -92,7 +93,7 @@ export default function TabLayout() {
         options={{
           title: "Reglas",
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="format-list-bulleted" size={28} color={color} />
+            <Feather name='list' size={24} color={color} />
           ),
         }}
       />
@@ -101,7 +102,7 @@ export default function TabLayout() {
         options={{
           title: "Más",
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="more-horiz" size={24} color={color} />
+            <Feather name='more-horizontal' size={24} color={color} />
           ),
         }}
       />

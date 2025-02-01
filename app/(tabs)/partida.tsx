@@ -9,6 +9,7 @@ import { NoGameScreen } from "@/components/NoGameScreen";
 import { UIContext } from "@/context/ui";
 import { PartidaDetails } from "@/components/PartidaDetails";
 import { PlayerStatus } from "@/interfaces";
+import { globalStyles } from "@/styles/globals";
 
 const PartidaScreen = () => {
 
@@ -33,7 +34,7 @@ const PartidaScreen = () => {
   if (!currentGame) return <NoGameScreen />;
 
   return (
-    <View style={[styles.container, { backgroundColor: dynamicBackgroundColor }]}>
+    <View style={[globalStyles.screenContainer, { backgroundColor: dynamicBackgroundColor }]}>
       <FinishRoundModal modalVisible={modalVisible} setModalVisible={setModalVisible} />
 
       <PartidaDetails currentGame={currentGame} />
@@ -45,41 +46,32 @@ const PartidaScreen = () => {
           return (
             <TouchableOpacity key={index} onPress={() => handlePlayerPress(player.id)}>
               <Animated.View
-                style={styles.playerCard}
+                style={[styles.playerCard, { backgroundColor: colorA }]}
                 key={player.id}
                 layout={LinearTransition.delay(index * 100)}
                 entering={BounceIn}
                 exiting={BounceOut}
               >
-                <View style={[styles.playerNameContainer, { backgroundColor: colorA }]}>
-                  <Text style={styles.playerName}>{player.name}</Text>
-                </View>
-
-                <View style={[styles.playerScoreContainer, { backgroundColor: colorB }]}>
-                  <Text style={styles.playerScore}>{player.score} pts</Text>
-                </View>
+                <Text style={styles.playerName}>{player.name}</Text>
+                <Text style={styles.playerScore}>{player.score} pts</Text>
               </Animated.View>
             </TouchableOpacity>
           );
         })}
+
+        {losersSorted.length > 0 && <Text style={{ color: dynamicCardTextColor, fontSize: 16, marginBottom: 10, marginTop: 20 }}>Perdedores</Text>}
+
         {losersSorted.map((player, index) => {
           return (
             <Animated.View
-              style={styles.playerCard}
+              style={[styles.playerCard, { backgroundColor: dynamicCardBackgroundColor }]}
               key={index}
               layout={LinearTransition.delay(index * 100)}
               entering={BounceIn}
               exiting={BounceOut}
             >
-              <View
-                style={[styles.playerNameContainer, { backgroundColor: dynamicCardBackgroundColor }]}
-              >
-                <Text style={[styles.loserName, { color: dynamicCardTextColor }]}>{player.name} {player.status === PlayerStatus.GONE && "(Se fue)"}</Text>
-              </View>
-
-              <View style={[styles.playerScoreContainer, { backgroundColor: dynamicCardBackgroundColor }]}>
-                <Text style={[styles.loserScore, { color: dynamicCardTextColor }]}>{player.score} pts</Text>
-              </View>
+              <Text style={[styles.loserName, { color: dynamicCardTextColor }]}>{player.name} {player.status === PlayerStatus.GONE && "(Se fue)"}</Text>
+              <Text style={[styles.loserScore, { color: dynamicCardTextColor }]}>{player.score} pts</Text>
             </Animated.View>
           );
         })}
@@ -105,6 +97,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
     borderRadius: 10,
+    height: 60,
+    paddingHorizontal: 20,
   },
   playerNameContainer: {
     flex: 4,

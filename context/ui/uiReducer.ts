@@ -20,22 +20,24 @@ export const uiReducer = (state: UIState, action: UiActionType): UIState => {
         case '[Ui] - SET_DARK_COLORS':
             return {
                 ...state,
-                dynamicBackgroundColor: colors.grey[950],
-                dynamicTextColor: colors.grey[200],
-                dynamicCardBackgroundColor: colors.grey[900],
-                dynamicCardTextColor: colors.grey[200],
-                dynamicButtonBackgroundColor: colors.grey[950],
-                dynamicButtonTextColor: colors.grey[200],
+                isDarkMode: true,
+                dynamicBackgroundColor: colors.blue[950],
+                dynamicTextColor: colors.blue[200],
+                dynamicCardBackgroundColor: colors.blue[900],
+                dynamicCardTextColor: colors.blue[200],
+                dynamicButtonBackgroundColor: colors.blue[950],
+                dynamicButtonTextColor: colors.blue[200],
             }
         case '[Ui] - SET_LIGHT_COLORS':
             return {
                 ...state,
-                dynamicBackgroundColor: colors.grey[50],
-                dynamicTextColor: colors.grey[900],
-                dynamicCardBackgroundColor: colors.white,
-                dynamicCardTextColor: colors.grey[900],
-                dynamicButtonBackgroundColor: colors.grey[100],
-                dynamicButtonTextColor: colors.grey[900],
+                isDarkMode: false,
+                dynamicBackgroundColor: colors.blue[200],
+                dynamicTextColor: colors.blue[900],
+                dynamicCardBackgroundColor: colors.blue[50],
+                dynamicCardTextColor: colors.blue[900],
+                dynamicButtonBackgroundColor: colors.blue[100],
+                dynamicButtonTextColor: colors.blue[900],
             }
 
         default:

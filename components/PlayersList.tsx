@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Player } from "@/interfaces/game";
 import { colors } from "@/styles/colors";
 import { Entypo } from "@expo/vector-icons";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useColorScheme } from "react-native";
 import Animated, { Layout, SlideInLeft, SlideOutRight } from "react-native-reanimated";
+import { UIContext } from "@/context/ui";
 
 interface PlayersListProps {
     jugadores: Player[];
@@ -14,8 +15,11 @@ export const PlayersList = ({
     jugadores = [],
     setJugadores,
 }: PlayersListProps) => {
-    const colorScheme = useColorScheme();
-    const isDarkMode = colorScheme === "dark";
+
+    const {
+        dynamicCardBackgroundColor,
+        dynamicCardTextColor,
+    } = useContext(UIContext)
 
     return (
         <ScrollView style={styles.scrollContainer}>
@@ -25,21 +29,15 @@ export const PlayersList = ({
                     style={[
                         styles.jugadorItem,
                         {
-                            backgroundColor: isDarkMode ? colors.grey["900"] : colors.grey["100"], // Fondo dinámico
-                            borderColor: isDarkMode ? colors.grey["800"] : colors.grey["300"], // Bordes dinámicos
-                            borderWidth: 1,
+                            backgroundColor: dynamicCardBackgroundColor,
+                            elevation: 5,
                         },
                     ]}
-                    entering={SlideInLeft} // Animación al ingresar
-                    exiting={SlideOutRight} // Animación al salir
-                    layout={Layout} // Animación al reorganizar
+                    entering={SlideInLeft}
+                    exiting={SlideOutRight}
+                    layout={Layout}
                 >
-                    <Text
-                        style={{
-                            fontSize: 16,
-                            color: isDarkMode ? colors.grey["200"] : colors.grey["900"], // Texto dinámico
-                        }}
-                    >
+                    <Text style={{ fontSize: 16, color: dynamicCardTextColor, }}>
                         {jugador.name}
                     </Text>
                     <TouchableOpacity

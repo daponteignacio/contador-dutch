@@ -12,7 +12,8 @@ export const useCreate = () => {
         scoreLimit: "",
         errorMsg: "",
         currentPlayerName: "",
-        players: [] as Player[],
+        players: [
+        ] as Player[],
         finishMode: FinishMode.FIRST_TO_LOSE,
     });
 
@@ -60,7 +61,9 @@ export const useCreate = () => {
 
         setState({ ...state, errorMsg: "" });
         newGame(state.gameName, scoreLimit, state.players, state.finishMode);
-        router.replace("/(tabs)/partida");
+
+        // TODO: BUG -> Cuando se hace push a una ruta se buguea la tabbart y aparece el boton de back del stack navigator en el header del tab navigator
+        router.back();
     };
 
     return {

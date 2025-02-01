@@ -77,6 +77,21 @@ export const FinishRoundModal = ({
         }));
     };
 
+    useEffect(() => {
+        let timeout: NodeJS.Timeout;
+
+        if (error) {
+            timeout = setTimeout(() => {
+                setError("");
+            }, 3000);
+        }
+
+        return () => {
+            clearTimeout(timeout);
+        }
+
+    }, [error]);
+
     const handleNextPlayer = () => {
         if (currentPlayerIndex === players.length - 1) return;
         setCurrentPlayerIndex((prev) => prev + 1);
@@ -132,8 +147,9 @@ export const FinishRoundModal = ({
 
                         <PlayerScoreCounter player={currentPlayer} handleAddPoints={handleAddPoints} handleSubtractPoints={handleSubtractPoints} />
 
-                        {error && <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>}
                     </View>
+
+                    <Text style={{ color: colors.red[400], textAlign: 'center', marginVertical: 10 }}>{error}</Text>
 
                     <View style={styles.modalFooter}>
                         <View style={styles.bottomModalButtons}>

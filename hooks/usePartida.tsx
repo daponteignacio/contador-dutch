@@ -6,7 +6,7 @@ import { PlayerStatus } from "@/interfaces/game";
 
 
 export const usePartida = () => {
-    const { currentGame, endGame, removePlayer } = useContext(AppContext);
+    const { currentGame, endGameInAdvance, removePlayer } = useContext(AppContext);
     const [modalVisible, setModalVisible] = useState(false);
 
     const players = currentGame?.players.filter((player) => player.status === PlayerStatus.PLAYING) || [];
@@ -71,8 +71,7 @@ export const usePartida = () => {
                     text: "Finalizar",
                     style: "destructive",
                     onPress: () => {
-                        endGame();
-                        router.push("/(tabs)");
+                        endGameInAdvance();
                     },
                 },
             ]

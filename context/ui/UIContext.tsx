@@ -2,6 +2,7 @@ import { createContext } from 'react';
 
 
 interface ContextProps {
+    isDarkMode: boolean
     dynamicBackgroundColor: string
     dynamicTextColor: string
     dynamicCardBackgroundColor: string

@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Linking, Platform, Alert, Appearance } from "react-native";
+import { Linking, Platform, Alert } from "react-native";
 
 export const useMore = () => {
     const handleRating = () => {
@@ -24,13 +23,8 @@ export const useMore = () => {
         Linking.openURL(emailUrl);
     };
 
-    const toggleDarkMode = () => {
-        const isDarkMode = Appearance.getColorScheme() === "dark";
-        Appearance.setColorScheme(isDarkMode ? "light" : "dark");
-    };
 
     return {
-        toggleDarkMode,
         handleRating,
         handleEmail,
     };

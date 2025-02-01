@@ -21,11 +21,13 @@ const HistoryPage = () => {
     }, [oldGameId]);
 
 
-    const playersSorted =
-        (currentOldGame?.players.sort((a, b) => a.score - b.score) || [])
-            .filter(player => player.status !== PlayerStatus.GONE);
+    const playersSorted = ([...currentOldGame?.players || []]
+        .sort((a, b) => a.score - b.score)
+        .filter(player => player.status !== PlayerStatus.GONE));
 
     const playersGone = currentOldGame?.players.filter(player => player.status === PlayerStatus.GONE);
+
+    // const winner = playersSorted.find(player => player.status === PlayerStatus.WINNER);
 
     const winner = playersSorted.find(player => player.status === PlayerStatus.WINNER);
 
@@ -82,7 +84,7 @@ const HistoryPage = () => {
                                     entering={SlideInLeft.duration(500).delay(index * 200)}
                                     style={[styles.playerCard, { backgroundColor: dynamicCardBackgroundColor }]}
                                 >
-                                    <Text style={{ ...styles.playerName, color }}>{player?.name} {player.status === PlayerStatus.GONE && "(Se fue)"}</Text>
+                                    <Text style={{ ...styles.playerName, color }}>{player?.name}</Text>
                                     <Text style={{ ...styles.playerName, color }}>{player?.score}</Text>
                                 </Animated.View>
                             )

@@ -9,6 +9,8 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { AppProvider } from '@/context';
 import { UIProvider } from '@/context/ui';
+import { colors } from '@/styles/colors';
+import { State } from '@/components/State';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -31,11 +33,7 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <AppProvider>
         <UIProvider>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ title: "Dutch" }} />
-            <Stack.Screen name="game" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
-          </Stack>
+          <State />
           <StatusBar style="auto" />
         </UIProvider>
       </AppProvider>
