@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, ScrollView, useColorScheme, Image } from "react-native";
 import { useLocalSearchParams } from "expo-router/build/hooks";
 import { router } from "expo-router";
-import Animated, { BounceIn, RotateInDownLeft, RotateInDownRight, SlideInLeft, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
+import Animated, { BounceIn, LinearTransition, RotateInDownLeft, RotateInDownRight, SlideInLeft, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import CustomButton from "@/components/CustomButton";
 import { colors } from "@/styles/colors";
 import { FinishMode, Player, PlayerStatus } from "@/interfaces/game";
@@ -126,6 +126,7 @@ const Winner = ({ name = '' }) => {
 
             <View style={styles.winnerContainer}>
                 <Animated.Image
+                    layout={LinearTransition}
                     entering={RotateInDownLeft.duration(500).delay(500)}
                     style={[styles.littleStar, { transform: [{ rotate: '360deg' }] }]}
                     source={require('@/assets/star.png')}
@@ -145,6 +146,7 @@ const Winner = ({ name = '' }) => {
                     {name}
                 </Animated.Text>
                 <Animated.Image
+                    layout={LinearTransition}
                     entering={RotateInDownRight.duration(500).delay(500)}
                     style={[styles.littleStar, { transform: [{ rotate: '360deg' }] }]}
                     source={require('@/assets/star.png')}
@@ -201,7 +203,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 16,
         fontWeight: "600",
-        color: "#666666",
+        color: "gold",
     },
     details: {
         flexDirection: "row",

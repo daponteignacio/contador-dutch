@@ -32,7 +32,7 @@ export const appReducer = (state: AppState, action: AppAction): AppState => {
                 ...state,
                 currentGame: {
                     ...state.currentGame!,
-                    players: [...state.currentGame!.players, { id: state.currentGame!.players.length + 1, name: action.payload, score: pointsAvg, status: PlayerStatus.PLAYING }]
+                    players: [...state.currentGame!.players, { id: state.currentGame!.players.length + 1, name: action.payload, score: Math.trunc(pointsAvg), status: PlayerStatus.PLAYING }]
                 }
             };
         case 'END_GAME':
