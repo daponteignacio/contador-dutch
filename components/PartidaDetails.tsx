@@ -1,13 +1,13 @@
 import { useContext } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { UIContext } from '@/context/ui';
-import { Game } from '@/interfaces/game';
+import { FinishMode, Game } from '@/interfaces/game';
 import { Feather } from '@expo/vector-icons';
 
 export const PartidaDetails = ({ currentGame }: { currentGame: Game }) => {
     const { dynamicCardBackgroundColor, dynamicCardTextColor } = useContext(UIContext);
 
-    const finishMode = currentGame.finishMode === "first-to-lose" ? "Primero en perder" : "Último en ganar";
+    const finishMode = currentGame.finishMode === FinishMode.FIRST_TO_LOSE ? "Primero en perder" : "Último en ganar";
 
     const pointsAvg = currentGame.players.reduce((acc, player) => acc + player.score, 0) / currentGame.players.length;
 
@@ -20,7 +20,7 @@ export const PartidaDetails = ({ currentGame }: { currentGame: Game }) => {
                 </View>
                 <View style={styles.detailItem}>
                     <Text style={[styles.label, { color: dynamicCardTextColor }]}>Promedio</Text>
-                    <Text style={[styles.value, { color: dynamicCardTextColor }]}>{pointsAvg}</Text>
+                    <Text style={[styles.value, { color: dynamicCardTextColor }]}>{Math.trunc(pointsAvg)}</Text>
                 </View>
             </View>
 
