@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ToastAndroid } from "react-native";
 import { FinishRoundModal } from "@/components/FinishRoundModal";
 import CustomButton from "@/components/CustomButton";
 import Animated, { BounceIn, BounceOut, LinearTransition } from "react-native-reanimated";
@@ -81,10 +81,11 @@ const PartidaScreen = () => {
         })}
       </ScrollView>
 
-      <View style={{ gap: 10, flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
+      <View style={{ gap: 10, flexDirection: "row", justifyContent: "center", alignItems: "center", backgroundColor: dynamicCardBackgroundColor, borderRadius: 10, padding: 10 }}>
         <TouchableOpacity
           style={[styles.partidaButton, { backgroundColor: colors.yellow["500"] }]}
           onPress={addPlayer}
+          onLongPress={() => ToastAndroid.show("Agregar jugador", ToastAndroid.SHORT)}
         >
           <Feather name="plus" size={24} color="#FFFFFF" />
           <Feather name="user" size={24} color="#FFFFFF" />
@@ -92,12 +93,14 @@ const PartidaScreen = () => {
         <TouchableOpacity
           style={[styles.partidaButton, { backgroundColor: colors.red["500"] }]}
           onPress={handleFinalizarPartida}
+          onLongPress={() => ToastAndroid.show("Finalizar partida", ToastAndroid.SHORT)}
         >
           <Feather name="x" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.partidaButton, { backgroundColor: colors.blue["500"] }]}
           onPress={nextRound}
+          onLongPress={() => ToastAndroid.show("Siguiente ronda", ToastAndroid.SHORT)}
         >
           <Feather name="chevron-right" size={24} color="#FFFFFF" />
         </TouchableOpacity>

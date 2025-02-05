@@ -8,6 +8,8 @@ import { UIContext } from '@/context/ui';
 import { PlayerScoreCounter } from './PlayerScoreCounter';
 import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 import * as Haptics from "expo-haptics";
+import { useFinishRound } from '@/hooks/useFinishRound';
+import { useFinishRoundV2 } from '@/hooks/useFinishRoundV2';
 
 
 // TODO: Cuando se cambia de jugador, los puntos ingresados del anterior deberían preservarse en otra estructura y reiniciarse al cambiar de jugador
@@ -29,18 +31,22 @@ export const FinishRoundModal = ({
     modalVisible,
     setModalVisible,
 }: FinishRoundModalProps) => {
-    const { currentGame, finishRound } = useContext(AppContext);
-    const [currentGameCopy, setCurrentGameCopy] = useState<Game>({ ...currentGame! });
 
-    useEffect(() => {
-        setCurrentGameCopy({ ...currentGame! });
-    }, [currentGame])
+    const {
+        currentGameCopy,
+        currentPlayer,
+        currentPlayerIndex,
+        error,
+        newPlayerPoints,
+        players,
+        terminateRound,
+        handleAddPoints,
+        handleNextPlayer,
+        handlePreviousPlayer,
+        handleSubtractPoints,
+        setCurrentPlayerIndex,
+    } = useFinishRoundV2()
 
-    const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
-    const players = (currentGameCopy?.players || []).filter((player) => player.status === PlayerStatus.PLAYING);
-    const currentPlayer = players[currentPlayerIndex];
-
-    const [error, setError] = useState("");
 
     const {
         dynamicTextColor,
@@ -51,74 +57,6 @@ export const FinishRoundModal = ({
         dynamicButtonTextColor,
     } = useContext(UIContext);
 
-    const handleAddPoints = (newPoints: number) => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
-
-        setCurrentGameCopy((prev) => ({
-            ...prev,
-            players: prev.players?.map((player) =>
-                player.id === currentPlayer.id
-                    ? { ...player, score: player.score + newPoints }
-                    : player
-            ),
-        }));
-    };
-
-    const handleSubtractPoints = (newPoints: number) => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
-
-        if (currentPlayer.score - newPoints < 0) {
-            setError('No puedes ingresar números negativos');
-            return;
-        }
-
-        const playerCopy = currentGame?.players.find((player) => player.id === currentPlayer.id);
-        const player = players.find((player) => player.id === currentPlayer.id);
-
-
-        if ((player?.score ?? 0) - newPoints < (playerCopy?.score ?? 0)) {
-            console.log(playerCopy, player);
-            return;
-        }
-
-        setCurrentGameCopy((prev) => ({
-            ...prev,
-            players: prev.players?.map((player) =>
-                player.id === currentPlayer.id
-                    ? { ...player, score: player.score - newPoints }
-                    : player
-            ),
-        }));
-    };
-
-    useEffect(() => {
-        let timeout: NodeJS.Timeout;
-
-        if (error) {
-            timeout = setTimeout(() => {
-                setError("");
-            }, 3000);
-        }
-
-        return () => {
-            clearTimeout(timeout);
-        }
-
-    }, [error]);
-
-    const handleNextPlayer = () => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
-        if (currentPlayerIndex === players.length - 1) return;
-        setCurrentPlayerIndex((prev) => prev + 1);
-    };
-
-    const handlePreviousPlayer = () => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
-        if (currentPlayerIndex === 0) return;
-        setCurrentPlayerIndex((prev) => prev - 1);
-    };
 
     const closeModal = () => {
         setCurrentPlayerIndex(0);
@@ -128,7 +66,7 @@ export const FinishRoundModal = ({
     const finishRoundAndCloseModal = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-        finishRound(currentGameCopy);
+        terminateRound();
         closeModal();
     };
 
@@ -152,19 +90,15 @@ export const FinishRoundModal = ({
 
                     <View style={styles.modalContent}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                            <Animated.Text
-                                entering={FadeIn}
-                                layout={LinearTransition}
-                                style={{ fontWeight: 'bold', fontSize: 16, color: dynamicTextColor }}
-                            >
+                            <Text style={{ fontWeight: 'bold', fontSize: 16, color: dynamicTextColor }}>
                                 {currentPlayer?.name}
-                            </Animated.Text>
+                            </Text>
 
                             <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
                                 <Text style={[{ color: dynamicButtonTextColor, fontSize: 20, fontWeight: 'bold' }]}>
                                     {currentPlayer?.score.toString()}
                                 </Text>
-                                {/* 
+
                                 <Text style={{ color: dynamicTextColor, fontSize: 16 }}>+</Text>
 
                                 <View
@@ -179,9 +113,9 @@ export const FinishRoundModal = ({
                                 >
 
                                     <Text style={[{ color: dynamicButtonTextColor, fontSize: 20, fontWeight: 'bold', }]}>
-                                        {currentPlayer?.score.toString()}
+                                        {newPlayerPoints?.toString()}
                                     </Text>
-                                </View> */}
+                                </View>
                             </View>
                         </View>
 
