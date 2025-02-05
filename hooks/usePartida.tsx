@@ -7,7 +7,12 @@ import { PlayerStatus } from "@/interfaces/game";
 
 export const usePartida = () => {
     const { currentGame, endGameInAdvance, removePlayer } = useContext(AppContext);
-    const [modalVisible, setModalVisible] = useState(false);
+
+    const [modales, setModales] = useState({
+        finishRoundModalVisible: false,
+        addPlayerModalVisible: false,
+    });
+
 
     const players = currentGame?.players.filter((player) => player.status === PlayerStatus.PLAYING) || [];
     const losers = currentGame?.players.filter((player) => [PlayerStatus.LOSER, PlayerStatus.GONE].includes(player.status)) || [];
@@ -34,10 +39,6 @@ export const usePartida = () => {
         }
     };
 
-
-    const nextRound = () => {
-        setModalVisible(true);
-    };
 
     const handlePlayerPress = (playerId: number) => {
         Alert.alert(
@@ -78,16 +79,25 @@ export const usePartida = () => {
         );
     };
 
+    const addPlayer = () => {
+        setModales({ ...modales, addPlayerModalVisible: true });
+    }
+
+    const nextRound = () => {
+        setModales({ ...modales, finishRoundModalVisible: true });
+    };
+
     return {
         avg,
         currentGame,
         losersSorted,
-        modalVisible,
+        modales,
         playersSorted,
+        addPlayer,
         getColor,
         handleFinalizarPartida,
         handlePlayerPress,
         nextRound,
-        setModalVisible,
+        setModales,
     };
 };

@@ -7,7 +7,18 @@ import { Game, PlayerStatus } from '@/interfaces/game';
 import { UIContext } from '@/context/ui';
 import { PlayerScoreCounter } from './PlayerScoreCounter';
 import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
+import * as Haptics from "expo-haptics";
 
+
+// TODO: Cuando se cambia de jugador, los puntos ingresados del anterior deberían preservarse en otra estructura y reiniciarse al cambiar de jugador
+// TODO: Cuando se termina la ronda, a cada jugador se le agregan sus puntos (currentPoints + newPoints), se reinicia la estructura de puntos, se hace finishRound() y se cierra el modal.
+// TODO: Al querer cerrar el modal, sebe alertarse de que los puntos ingresados se perderán, y se debe confirmar si se desea cerrar el modal. Si se confirma, se cierra el modal y se reinician los puntos.
+
+/* 
+    TODO: Hay que agregar un botón de bonus que permite descontar 50 puntos en el caso de que el un jugador haya terminado una ronda con 0 puntos (cortó con su última carta o solo le quedaba el comodín).
+    Una alternativa es que no se le sume punto a ese jugador, ya que no sumó, y cuando se termina la ronda se haga la resta de 50 puntos automaticamente pero indicandolo de alguna forma.
+    Además, este beneficio debería estar disponible en el menú de creacion del juego como una opción.
+*/
 
 interface FinishRoundModalProps {
     modalVisible: boolean;
@@ -33,6 +44,7 @@ export const FinishRoundModal = ({
 
     const {
         dynamicTextColor,
+        dynamicBackgroundColor,
         dynamicCardBackgroundColor,
         dynamicCardTextColor,
         dynamicButtonBackgroundColor,
@@ -40,7 +52,7 @@ export const FinishRoundModal = ({
     } = useContext(UIContext);
 
     const handleAddPoints = (newPoints: number) => {
-
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
 
         setCurrentGameCopy((prev) => ({
             ...prev,
@@ -53,6 +65,8 @@ export const FinishRoundModal = ({
     };
 
     const handleSubtractPoints = (newPoints: number) => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+
         if (currentPlayer.score - newPoints < 0) {
             setError('No puedes ingresar números negativos');
             return;
@@ -93,11 +107,15 @@ export const FinishRoundModal = ({
     }, [error]);
 
     const handleNextPlayer = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
         if (currentPlayerIndex === players.length - 1) return;
         setCurrentPlayerIndex((prev) => prev + 1);
     };
 
     const handlePreviousPlayer = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
         if (currentPlayerIndex === 0) return;
         setCurrentPlayerIndex((prev) => prev - 1);
     };
@@ -108,6 +126,8 @@ export const FinishRoundModal = ({
     };
 
     const finishRoundAndCloseModal = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
         finishRound(currentGameCopy);
         closeModal();
     };
@@ -140,9 +160,29 @@ export const FinishRoundModal = ({
                                 {currentPlayer?.name}
                             </Animated.Text>
 
-                            <Text style={[{ color: dynamicButtonTextColor, fontSize: 20, fontWeight: 'bold' }]}>
-                                {currentPlayer?.score.toString()}
-                            </Text>
+                            <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
+                                <Text style={[{ color: dynamicButtonTextColor, fontSize: 20, fontWeight: 'bold' }]}>
+                                    {currentPlayer?.score.toString()}
+                                </Text>
+                                {/* 
+                                <Text style={{ color: dynamicTextColor, fontSize: 16 }}>+</Text>
+
+                                <View
+                                    style={{
+                                        paddingVertical: 3,
+                                        paddingHorizontal: 7,
+                                        borderRadius: 10,
+                                        backgroundColor: dynamicBackgroundColor,
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                    }}
+                                >
+
+                                    <Text style={[{ color: dynamicButtonTextColor, fontSize: 20, fontWeight: 'bold', }]}>
+                                        {currentPlayer?.score.toString()}
+                                    </Text>
+                                </View> */}
+                            </View>
                         </View>
 
                         <PlayerScoreCounter player={currentPlayer} handleAddPoints={handleAddPoints} handleSubtractPoints={handleSubtractPoints} />

@@ -16,6 +16,7 @@ interface ContextProps {
     finishRound: (game: Game) => void;
     deleteOldGame: (id: string) => void;
     endGameInAdvance: () => void;
+    addPlayer: (name: string) => void;
 }
 
 

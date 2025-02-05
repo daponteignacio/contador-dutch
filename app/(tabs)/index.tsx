@@ -55,7 +55,7 @@ const HomeScreen = () => {
         { backgroundColor: dynamicBackgroundColor },
       ]}
     >
-      <CustomButton title="Nueva partida" onPress={handleNewGame} bgColor={colors.green["500"]} />
+      <CustomButton title="Nueva partida" onPress={handleNewGame} bgColor={colors.green["500"]} styles={{ marginBottom: 10 }} />
 
       {games.length > 0 && (
         <Text style={[styles.historyTitle, { color: dynamicTextColor }]}>

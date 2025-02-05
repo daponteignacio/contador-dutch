@@ -16,6 +16,5 @@ export const globalStyles = {
     screenContainer: {
         flex: 1,
         padding: 20,
-        // paddingBottom: 150,
     }
 }

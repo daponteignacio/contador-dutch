@@ -1,143 +1,81 @@
 import { colors } from '@/styles/colors';
-import React, { useContext } from 'react'
-import { Text, View, StyleSheet, useColorScheme } from 'react-native';
+import React, { useContext } from 'react';
+import { Text, View, StyleSheet } from 'react-native';
 import CustomButton from './CustomButton';
 import { router } from 'expo-router';
 import { UIContext } from '@/context/ui';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 export const NoGameScreen = () => {
-
-    const {
-        dynamicBackgroundColor,
-        dynamicTextColor,
-    } = useContext(UIContext);
+    const { dynamicBackgroundColor, dynamicTextColor } = useContext(UIContext);
 
     return (
-        <View
-            style={[
-                styles.container,
-                {
-                    backgroundColor: dynamicBackgroundColor,
-                    justifyContent: "center",
-                    alignItems: "center",
-                },
-            ]}
-        >
-            <Text style={[styles.label, { color: dynamicTextColor }]}>
-                No hay una partida en curso
-            </Text>
-            <Text
-                style={[
-                    styles.label,
-                    {
-                        color: dynamicTextColor,
-                        fontWeight: "normal",
-                        marginBottom: 20,
-                    },
-                ]}
-            >
-                Cree una nueva partida para comenzar
-            </Text>
-            <CustomButton
-                title="Nueva partida"
-                onPress={() => router.push("/game/create")}
-                bgColor={colors.green["500"]}
-            />
-        </View>
-    )
-}
+        <View style={[styles.container, { backgroundColor: dynamicBackgroundColor }]}>
+            {/* Icono de fondo centrado */}
+            <View style={styles.iconContainer}>
+                <MaterialCommunityIcons
+                    size={400}
+                    name="cards-playing-club-multiple-outline"
+                    color={dynamicTextColor}
+                    style={{
+                        transform: [{ rotate: "30deg" }],
+                        opacity: 0.1,
+                    }}
+                />
+            </View>
 
+            {/* Contenido (texto y botón) centrado por encima del icono */}
+            <View style={styles.contentContainer}>
+                <Text style={[styles.label, { color: dynamicTextColor }]}>
+                    No hay una partida en curso
+                </Text>
+                <Text
+                    style={[
+                        styles.label,
+                        { color: dynamicTextColor, fontWeight: "normal", marginBottom: 20 }
+                    ]}
+                >
+                    Cree una nueva partida para comenzar
+                </Text>
+                <CustomButton
+                    title="Nueva partida"
+                    onPress={() => router.push("/game/create")}
+                    bgColor={colors.green["500"]}
+                />
+            </View>
+        </View>
+    );
+};
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
-    },
-    headerInfo: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        gap: 5,
-    },
-    date: {
-        fontSize: 14,
-    },
-    averageText: {
-        fontSize: 14,
-    },
-    listContainer: {
-        paddingBottom: 20,
-    },
-    playerCard: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 10,
-        borderRadius: 10,
-    },
-    playerNameContainer: {
-        flex: 4,
-        padding: 16,
-        borderTopLeftRadius: 10,
-        borderBottomLeftRadius: 10,
-    },
-    playerName: {
-        fontSize: 16,
-    },
-    playerScoreContainer: {
-        flex: 1,
-        padding: 16,
-        borderTopRightRadius: 10,
-        borderBottomRightRadius: 10,
+        position: "relative",
+        justifyContent: "center",
         alignItems: "center",
     },
-    playerScore: {
-        fontSize: 16,
-        fontWeight: "bold",
+    iconContainer: {
+        // Este contenedor posiciona el icono de forma absoluta y lo centra
+        position: "absolute",
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        justifyContent: "center",
+        alignItems: "center",
     },
-
-    card: {
-        width: "100%",
-        backgroundColor: "#FFFFFF",
-        borderRadius: 16,
-        padding: 20,
-        elevation: 8,
-        shadowColor: "#000",
-        shadowOpacity: 0.1,
-        shadowOffset: { width: 0, height: 4 },
-        shadowRadius: 8,
-        marginBottom: 35,
-    },
-    header: {
-        marginBottom: 20,
-    },
-    headerText: {
-        fontSize: 18,
-        fontWeight: "bold",
-        color: "#333333",
-        marginBottom: 20,
-    },
-    title: {
-        fontSize: 16,
-        fontWeight: "600",
-        color: "#666666",
-    },
-    details: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-    },
-    detailItem: {
-        width: "48%",
+    contentContainer: {
+        zIndex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        width: "80%",
     },
     label: {
         fontSize: 14,
         color: "#888888",
         marginBottom: 5,
+        textAlign: "center",
     },
-    value: {
-        fontSize: 16,
-        fontWeight: "bold",
-        color: "#333333",
-    },
-
+    // Puedes mantener o agregar el resto de estilos que necesites...
 });

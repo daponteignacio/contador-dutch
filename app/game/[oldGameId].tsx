@@ -1,14 +1,15 @@
 import { StyleSheet, Text, View, ScrollView, useColorScheme, Image } from "react-native";
 import { useLocalSearchParams } from "expo-router/build/hooks";
 import { router } from "expo-router";
-import Animated, { BounceIn, SlideInLeft } from "react-native-reanimated";
+import Animated, { BounceIn, RotateInDownLeft, RotateInDownRight, SlideInLeft, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import CustomButton from "@/components/CustomButton";
 import { colors } from "@/styles/colors";
 import { FinishMode, Player, PlayerStatus } from "@/interfaces/game";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { AppContext } from "@/context";
 import { OldGameDetails } from "@/components/OldGameDetails";
 import { UIContext } from "@/context/ui";
+import { globalStyles } from "@/styles/globals";
 
 const HistoryPage = () => {
     const { oldGameId } = useLocalSearchParams();
@@ -41,77 +42,48 @@ const HistoryPage = () => {
     } = useContext(UIContext);
 
     return (
-        <ScrollView style={[styles.container, { backgroundColor: dynamicBackgroundColor }]}>
-            <View style={{ flex: 1 }}>
-                <OldGameDetails currentOldGame={currentOldGame!} />
+        <ScrollView
+            style={[globalStyles.screenContainer, { backgroundColor: dynamicBackgroundColor }]}
+            contentContainerStyle={{ paddingBottom: 20 }}
+        >
+            <OldGameDetails currentOldGame={currentOldGame!} />
 
-                <Animated.View
-                    entering={BounceIn.duration(500).delay(500)}
-                    style={{
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginBottom: 20,
-                        maxWidth: '100%',
-                    }}>
-                    <Text style={[{ marginBottom: 10, color: dynamicTextColor, textAlign: 'center' }]}>Ganador</Text>
+            <Winner name={winner?.name} />
 
-                    <View style={{
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginBottom: 20,
-                        flexDirection: 'row',
-                        maxWidth: '100%',
-                        overflow: 'hidden',
-                    }}>
-                        <Image style={styles.littleStar} source={require('@/assets/star.png')} />
-                        <Text style={[styles.winnerText, { textAlign: 'center', flexShrink: 1 }]}>{winner?.name}</Text>
-                        <Image style={styles.littleStar} source={require('@/assets/star.png')} />
-                    </View>
+            <View >
+                <Text style={[styles.headerText, { color: dynamicTextColor }]}>Jugadores ({playersSorted.length})</Text>
 
-                </Animated.View>
+                {playersSorted.map((player, index) => {
+                    const baseColor = dynamicCardTextColor;
+                    const color = index === 0 ? colors.green[500] : index === playersSorted.length - 1 ? colors.red[500] : baseColor;
 
-                <View style={{ height: 400 }}>
-                    <Text style={[styles.headerText, { color: dynamicTextColor }]}>Jugadores ({playersSorted.length})</Text>
+                    return (
+                        <Animated.View
+                            key={player.id}
+                            entering={SlideInLeft.duration(500).delay(index * 200)}
+                            style={[styles.playerCard, { backgroundColor: dynamicCardBackgroundColor }]}
+                        >
+                            <Text style={{ ...styles.playerName, color }}>{player?.name}</Text>
+                            <Text style={{ ...styles.playerName, color }}>{player?.score}</Text>
+                        </Animated.View>
+                    )
+                })}
 
-                    <ScrollView contentContainerStyle={styles.playerList}>
-                        {playersSorted.map((player, index) => {
-                            const baseColor = dynamicCardTextColor;
-                            const color = index === 0 ? colors.green[500] : index === playersSorted.length - 1 ? colors.red[500] : baseColor;
+                {playersGone !== undefined && playersGone.length > 0 && <View style={{ height: 1, backgroundColor: dynamicTextColor, marginVertical: 20 }} />}
 
-                            return (
-                                <Animated.View
-                                    key={player.id}
-                                    entering={SlideInLeft.duration(500).delay(index * 200)}
-                                    style={[styles.playerCard, { backgroundColor: dynamicCardBackgroundColor }]}
-                                >
-                                    <Text style={{ ...styles.playerName, color }}>{player?.name}</Text>
-                                    <Text style={{ ...styles.playerName, color }}>{player?.score}</Text>
-                                </Animated.View>
-                            )
-                        })}
-                    </ScrollView>
-
-                    {playersGone !== undefined && playersGone.length > 0 && <View style={{ height: 1, backgroundColor: dynamicTextColor, marginVertical: 20 }} />}
-
-                    <ScrollView contentContainerStyle={styles.playerList}>
-                        {playersGone?.map((player, index) => {
-                            return (
-                                <Animated.View
-                                    key={player.id}
-                                    entering={SlideInLeft.duration(500).delay(index * 200)}
-                                    style={[styles.playerCard, { backgroundColor: dynamicCardBackgroundColor }]}
-                                >
-                                    <Text style={{ ...styles.playerName, color: dynamicCardTextColor }}>{player?.name} (Se fue)</Text>
-                                    <Text style={{ ...styles.playerName, color: dynamicCardTextColor }}>{player?.score}</Text>
-                                </Animated.View>
-                            )
-                        })}
-                    </ScrollView>
-
-
-                </View>
+                {playersGone?.map((player, index) => {
+                    return (
+                        <Animated.View
+                            key={player.id}
+                            entering={SlideInLeft.duration(500).delay(index * 200)}
+                            style={[styles.playerCard, { backgroundColor: dynamicCardBackgroundColor }]}
+                        >
+                            <Text style={{ ...styles.playerName, color: dynamicCardTextColor }}>{player?.name} (Se fue)</Text>
+                            <Text style={{ ...styles.playerName, color: dynamicCardTextColor }}>{player?.score}</Text>
+                        </Animated.View>
+                    )
+                })}
             </View>
-
             <View style={{ gap: 16, marginBottom: 20 }}>
                 <Text style={{ color: colors.grey[300], textAlign: 'center' }} >ID: {currentOldGame?.id}</Text>
                 <CustomButton title="Volver" onPress={() => router.back()} bgColor={colors.blue[500]} />
@@ -120,12 +92,69 @@ const HistoryPage = () => {
     );
 };
 
+const Winner = ({ name = '' }) => {
+    // Valor compartido para controlar el radio de la sombra (efecto glow)
+    const glow = useSharedValue(5);
+
+    useEffect(() => {
+        // Animación que lleva el valor de 5 a 15 en 1 segundo y se repite en reversa indefinidamente
+        glow.value = withRepeat(
+            withTiming(15, { duration: 1000 }),
+            -1, // -1 para repetir infinitamente
+            true // 'true' para que la animación se reproduzca en reversa
+        );
+    }, [glow]);
+
+    // Estilo animado que aplica el valor de glow a textShadowRadius
+    const animatedGlowStyle = useAnimatedStyle(() => {
+        return {
+            textShadowRadius: glow.value,
+        };
+    });
+
+    return (
+        <Animated.View
+            entering={BounceIn.duration(500).delay(500)}
+            style={{
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 20,
+                maxWidth: '100%',
+            }}
+        >
+            <Text style={styles.title}>Ganador</Text>
+
+            <View style={styles.winnerContainer}>
+                <Animated.Image
+                    entering={RotateInDownLeft.duration(500).delay(500)}
+                    style={[styles.littleStar, { transform: [{ rotate: '360deg' }] }]}
+                    source={require('@/assets/star.png')}
+                />
+                <Animated.Text
+                    style={[
+                        styles.winnerText,
+                        {
+                            textAlign: "center",
+                            flexShrink: 1,
+                            textShadowColor: "rgba(255, 255, 0, 0.9)", // Color amarillo brillante para el glow
+                            textShadowOffset: { width: 0, height: 0 },
+                        },
+                        animatedGlowStyle, // Aplica el estilo animado para el glow
+                    ]}
+                >
+                    {name}
+                </Animated.Text>
+                <Animated.Image
+                    entering={RotateInDownRight.duration(500).delay(500)}
+                    style={[styles.littleStar, { transform: [{ rotate: '360deg' }] }]}
+                    source={require('@/assets/star.png')}
+                />
+            </View>
+        </Animated.View>
+    );
+};
+
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#F5F5F5",
-        padding: 20,
-    },
     backButton: {
         alignSelf: "flex-start",
         backgroundColor: "#E0E0E0",
@@ -133,6 +162,15 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         borderRadius: 10,
         marginBottom: 20,
+    },
+    winnerContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 20,
+        flexDirection: 'row',
+        maxWidth: '100%',
+        gap: 10,
+        overflow: 'hidden',
     },
     backButtonText: {
         fontSize: 16,

@@ -1,9 +1,16 @@
 import { ReactNode } from "react";
-import { StyleSheet, Text, TouchableOpacity, StyleProp, ViewStyle, TextStyle, View, useColorScheme } from "react-native";
+import {
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    StyleProp,
+    ViewStyle,
+    TextStyle,
+    View,
+    useColorScheme
+} from "react-native";
 import * as Haptics from "expo-haptics";
 import { colors } from "@/styles/colors";
-
-// TODO: Agregar respuestas hapitcas al interactuar con botones
 
 interface CustomButtonProps {
     bgColor?: string;
@@ -13,6 +20,7 @@ interface CustomButtonProps {
     title?: string; // Ahora opcional
     icon?: ReactNode; // Nuevo prop para aceptar un ícono
     variant?: "solid" | "outline";
+    styles?: StyleProp<ViewStyle>; // Prop para agregar estilos extra al botón
 }
 
 export const CustomButton = ({
@@ -23,17 +31,18 @@ export const CustomButton = ({
     title,
     icon,
     variant = "solid",
+    styles: extraStyles, // renombramos para evitar conflicto con los estilos internos
 }: CustomButtonProps) => {
     const colorScheme = useColorScheme();
-    const isDarkMode = colorScheme === "dark"; // Detecta si está en modo oscuro
+    const isDarkMode = colorScheme === "dark";
 
     const getStyles = () => {
         const backgroundColor = disabled
             ? colors.grey[500]
             : variant === "outline"
                 ? isDarkMode
-                    ? colors.grey["900"] // Fondo oscuro en modo oscuro
-                    : "#FFFFFF" // Fondo blanco en modo claro
+                    ? colors.grey["900"]
+                    : "#FFFFFF"
                 : bgColor;
 
         const textColorFinal = disabled
@@ -55,34 +64,33 @@ export const CustomButton = ({
                 borderWidth: variant === "outline" ? 2 : 0,
                 paddingVertical: 14,
                 borderRadius: 100,
+                display: "flex",
+                flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "center",
-                flexDirection: "row", // Para alinear texto e ícono
-                marginBottom: 20,
                 width: "100%",
             } as StyleProp<ViewStyle>,
             text: {
                 fontSize: 18,
                 fontWeight: "bold",
                 color: textColorFinal,
-                marginLeft: icon && title ? 8 : 0, // Espacio entre ícono y texto
+                textAlign: "center",
             } as StyleProp<TextStyle>,
         };
     };
 
-    const styles = getStyles();
+    const computedStyles = getStyles();
 
     return (
         <TouchableOpacity
             disabled={disabled}
-            style={styles.container}
+            style={[computedStyles.container, extraStyles]} // Se combinan los estilos internos con los extra
             onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                onPress()
+                onPress();
             }}
         >
-            {icon && <View>{icon}</View>}
-            {title && <Text style={styles.text}>{title}</Text>}
+            {title && <Text style={computedStyles.text}>{title}</Text>}
         </TouchableOpacity>
     );
 };

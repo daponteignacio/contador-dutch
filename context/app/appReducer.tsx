@@ -4,6 +4,7 @@ import { formatDate } from "@/utils/formatDate";
 
 export type AppAction =
     { type: 'ADD_LOSERS', payload: Player[] } |
+    { type: 'ADD_PLAYER', payload: string } |
     { type: 'END_GAME' } |
     { type: 'NEW_GAME', payload: { name: string, limit: number, players: Player[], id: string, finishMode: FinishMode } } |
     { type: 'REMOVE_PLAYER', payload: number } |
@@ -21,6 +22,17 @@ export const appReducer = (state: AppState, action: AppAction): AppState => {
                 currentGame: {
                     ...state.currentGame!,
                     players: state.currentGame!.players.filter(p => !action.payload.some(l => l.id === p.id))
+                }
+            };
+        case 'ADD_PLAYER':
+
+            const pointsAvg = state.currentGame!.players.reduce((acc, player) => acc + player.score, 0) / state.currentGame!.players.length;
+
+            return {
+                ...state,
+                currentGame: {
+                    ...state.currentGame!,
+                    players: [...state.currentGame!.players, { id: state.currentGame!.players.length + 1, name: action.payload, score: pointsAvg, status: PlayerStatus.PLAYING }]
                 }
             };
         case 'END_GAME':

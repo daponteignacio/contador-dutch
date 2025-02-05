@@ -13,7 +13,7 @@ import { WinnerModal } from '@/components/WinnerModal';
 
 const { width, height } = Dimensions.get('window');
 
-// TODO: Al terminar una partida anticipadamente tambien debe mostrarse quien es el ganador y guardarse esa informacio en el estado de la app.
+// TODO: Hay que contemplar el caso de empate: actualizar el modal de anuncio de ganador, la animación en el detalle de un juego terminado.
 
 export interface AppState {
     currentGame?: Game;
@@ -23,20 +23,20 @@ export interface AppState {
 }
 
 const App_INITIAL_STATE: AppState = {
-    // currentGame: {
-    //     id: uuidv4(),
-    //     name: "Partida",
-    //     scoreLimit: 100,
-    //     players: [
-    //         { id: 1, name: "Jugador 1", score: 99, status: PlayerStatus.PLAYING },
-    //         { id: 2, name: "Jugador 2", score: 10, status: PlayerStatus.PLAYING },
-    //         { id: 3, name: "Jugador 3", score: 20, status: PlayerStatus.PLAYING },
-    //         { id: 4, name: "Jugador 4", score: 30, status: PlayerStatus.PLAYING },
-    //         { id: 5, name: "Jugador 5", score: 40, status: PlayerStatus.PLAYING },
-    //     ],
-    //     date: formatDate(new Date()),
-    //     finishMode: FinishMode.FIRST_TO_LOSE,
-    // },
+    currentGame: !__DEV__ ? undefined : {
+        id: uuidv4(),
+        name: "Partida",
+        scoreLimit: 100,
+        players: [
+            { id: 1, name: "Jugador 1", score: 99, status: PlayerStatus.PLAYING },
+            { id: 2, name: "Jugador 2", score: 10, status: PlayerStatus.PLAYING },
+            { id: 3, name: "Jugador 3", score: 20, status: PlayerStatus.PLAYING },
+            { id: 4, name: "Jugador 4", score: 30, status: PlayerStatus.PLAYING },
+            { id: 5, name: "Jugador 5", score: 40, status: PlayerStatus.PLAYING },
+        ],
+        date: formatDate(new Date()),
+        finishMode: FinishMode.FIRST_TO_LOSE,
+    },
     games: [],
     loading: true
 }
@@ -145,19 +145,24 @@ export const AppProvider: FC<AppProviderProps> = ({ children }) => {
         }
     };
 
+    const addPlayer = (name: string) => {
+        dispatch({ type: "ADD_PLAYER", payload: name });
+    }
+
     const [winner, setWinner] = useState<Player | null>(null);
 
     return (
         <AppContext.Provider value={{
             ...state,
-            endGameInAdvance,
-            newGame,
-            updateCurrentGame,
-            selectOldGame,
-            endGame,
-            removePlayer,
-            finishRound,
+            addPlayer,
             deleteOldGame,
+            endGame,
+            endGameInAdvance,
+            finishRound,
+            newGame,
+            removePlayer,
+            selectOldGame,
+            updateCurrentGame,
         }}>
 
             <WinnerModal

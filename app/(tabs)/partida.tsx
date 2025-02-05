@@ -10,19 +10,22 @@ import { UIContext } from "@/context/ui";
 import { PartidaDetails } from "@/components/PartidaDetails";
 import { PlayerStatus } from "@/interfaces";
 import { globalStyles } from "@/styles/globals";
+import { Feather } from "@expo/vector-icons";
+import { AddPlayerModal } from "@/components/AddPlayerModal";
 
 const PartidaScreen = () => {
 
   const {
     currentGame,
     losersSorted,
-    modalVisible,
+    modales,
     playersSorted,
+    addPlayer,
     getColor,
     handleFinalizarPartida,
     handlePlayerPress,
     nextRound,
-    setModalVisible,
+    setModales,
   } = usePartida();
 
   const {
@@ -35,7 +38,8 @@ const PartidaScreen = () => {
 
   return (
     <View style={[globalStyles.screenContainer, { backgroundColor: dynamicBackgroundColor }]}>
-      <FinishRoundModal modalVisible={modalVisible} setModalVisible={setModalVisible} />
+      <FinishRoundModal modalVisible={modales.finishRoundModalVisible} setModalVisible={(visible: boolean) => setModales({ ...modales, finishRoundModalVisible: visible })} />
+      <AddPlayerModal modalVisible={modales.addPlayerModalVisible} setModalVisible={(visible: boolean) => setModales({ ...modales, addPlayerModalVisible: visible })} />
 
       <PartidaDetails currentGame={currentGame} />
 
@@ -77,13 +81,40 @@ const PartidaScreen = () => {
         })}
       </ScrollView>
 
-      <CustomButton title="Siguiente ronda" onPress={nextRound} bgColor={colors.blue["500"]} variant="outline" />
-      <CustomButton title="Finalizar partida" onPress={handleFinalizarPartida} bgColor={colors.red["500"]} />
+      <View style={{ gap: 10, flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
+        <TouchableOpacity
+          style={[styles.partidaButton, { backgroundColor: colors.yellow["500"] }]}
+          onPress={addPlayer}
+        >
+          <Feather name="plus" size={24} color="#FFFFFF" />
+          <Feather name="user" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.partidaButton, { backgroundColor: colors.red["500"] }]}
+          onPress={handleFinalizarPartida}
+        >
+          <Feather name="x" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.partidaButton, { backgroundColor: colors.blue["500"] }]}
+          onPress={nextRound}
+        >
+          <Feather name="chevron-right" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  partidaButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    borderRadius: 10,
+    flex: 1,
+  },
   container: {
     flex: 1,
     padding: 20,
@@ -97,7 +128,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
     borderRadius: 10,
-    height: 60,
+    height: 50,
     paddingHorizontal: 20,
   },
   playerNameContainer: {
